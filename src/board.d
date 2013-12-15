@@ -17,6 +17,7 @@ import units;
 class Board
 {
 	Field[][] fields;  /// Pola
+	bool[][] changed;  /// Określa, czy zmieniono. Resetowane w updateBoard
 	
 	/**
 	 * Podstawowy konstruktor. Generuje planszę o wymiarach X na Y
@@ -29,9 +30,11 @@ class Board
 	public this(int w, int h, Terrain terrain)
 	{
 		fields.length = h;
-		foreach(ref Field[] row; fields)  // Iterujemy po referencjach, bo będziemy modyfikować.
+		changed.length = h;
+		foreach(int i, ref Field[] row; fields)  // Iterujemy po referencjach, bo będziemy modyfikować.
 		{
 			row.length = w;
+			changed[i].length = w;
 			
 			foreach(ref Field field; row)
 			{

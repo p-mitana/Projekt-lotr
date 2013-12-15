@@ -8,8 +8,8 @@ UbuntuShape
 	anchors.horizontalCenter: parent.horizontalCenter;
 	anchors.verticalCenter: parent.verticalCenter;
 	
-	width: units.gu(6);
-	height: units.gu(6);
+	width: units.gu(3);
+	height: units.gu(3);
 	
 	image: Image {}
 }

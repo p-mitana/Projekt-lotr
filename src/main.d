@@ -43,7 +43,7 @@ class Main
 		 * zamieniony na wczytywanie parametrów symulacji z pliku, konsoli lub jakiegoś
 		 * formularza w UI.
 		 */
-		Board board = new Board(27, 13, terrains["grass"]);
+		Board board = new Board(70, 50, terrains["grass"]);
 		ui.board = board;
 		
 		players ~= new Player("Gracz 1", "#ff0000", "#800000");
@@ -55,6 +55,7 @@ class Main
 			{
 				players[0].addUnit(new Unit("Elf łucznik"));
 				board[i][j].unit = players[0].getUnit(-1);
+				board.changed[i][j] = true;
 			}
 		}
 		
@@ -64,6 +65,7 @@ class Main
 			{
 				players[1].addUnit(new Unit("Ork łucznik"));
 				board[i][j].unit = players[1].getUnit(-1);
+				board.changed[i][j] = true;
 			}
 		}
 		

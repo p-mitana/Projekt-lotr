@@ -45,12 +45,18 @@ class UIController
 		{
 			foreach(int x, Field field; row)
 			{
-				if(field.unit !is null)
-					link.insertUnit(y, x, toStringz(field.unit.imagePath), 
-							toStringz(field.unit.owner.color1), toStringz(field.unit.owner.color2));
+				if(board.changed[y][x])
+				{
+					
+					if(field.unit !is null)
+						link.insertUnit(y, x, toStringz(field.unit.imagePath), 
+								toStringz(field.unit.owner.color1), toStringz(field.unit.owner.color2));
 				
-				else
-					link.clearField(y, x);
+					else
+						link.clearField(y, x);
+				}
+				
+				board.changed[y][x] = false;
 			}
 		}
 	}
@@ -70,6 +76,7 @@ class UIController
 			{
 				link.appendField(y, x, toStringz(field.terrain.imagePath));
 			}
+
 		}
 		
 		return v_board;

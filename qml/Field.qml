@@ -3,8 +3,8 @@ import Ubuntu.Components 0.1
 
 UbuntuShape
 {
-	width: units.gu(8);
-	height: units.gu(8);
+	width: units.gu(4);
+	height: units.gu(4);
 	
 	image: Image{}
 	id: field;
