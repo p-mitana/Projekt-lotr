@@ -62,7 +62,7 @@ class Main
 		{
 			for(int j = 15; j < 17; j++)
 			{
-				players[1].addUnit(new Unit("Elf łucznik"));
+				players[1].addUnit(new Unit("Ork łucznik"));
 				board[i][j].unit = players[1].getUnit(-1);
 			}
 		}
