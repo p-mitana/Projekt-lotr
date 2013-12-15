@@ -1,0 +1,125 @@
+Będę tutaj opisywał na bieżąco różne nietypowe elementy języka D, które
+wykorzystuję przy pisaniu kodu. Zaglądaj tu czasem, Konrad ;)
+==============================================================================
+
+WYCINKI TABLIC ---------------------------------------------------------------
+
+	Można brać kilka konkretnych elementów z tablicy wywołaniem:
+
+		array[start..end];
+
+	Element o indeksie start jest wliczany, element o indeksie end już nie.
+
+WYWOŁYWANIE FUNKCJI ---------------------------------------------------------
+
+	Funkcję posiadającą argumenty można wywołać tak, jakby była funkcją
+	pierwszego z nich - o ile pierwszy argument sam nie posiada funkcji o tej
+	nazwie. Na przykład funkcja:
+
+		replace(haystack, from, to);
+
+	może być wywołana jako
+
+		haystack.replace(from, to);
+
+ŁĄCZENIE TABLIC/CIĄGÓW ZNAKÓW -----------------------------------------------
+
+	Aby nie było niejednoznaczności typu "4" + 2, tablice łączymy operatorami
+	~ i ~=
+	
+		string x = "hello " ~ "world ";
+		x ~= "in D";
+
+TABLICE ASOCJACYJNE ---------------------------------------------------------
+
+	Indeksowane dowolnym typem, np. ciągami znaków.
+	
+		int[string] array;
+		array["a"] = 5;
+		array["b"] = 6;
+		array.remove("b");
+		int value = array["a"];
+	
+	Próba pobrania elementu nieistniejącego kończy się wyjątkiem RangeError.
+	Aby temu zapobiec, można podać wartość domyślną używając składni:
+	
+		value = array.get("a", -1);
+	
+	Więcej tu: http://dlang.org/hash-map.html
+
+WŁASNOŚCI (PROPERTIES) ------------------------------------------------------
+
+	Wygodniejszy sposób na gettery i settery. Za własność odpowiadają dwie
+	metody o tej samej nazwie. Jedna nie przyjmuje żadnego argumentu (jest
+	getterem), druga jeden (jest setterem). Pisze się je w taki sposób:
+	
+		string v_param;  // To jest zmienna, której dotyczy własność
+		@property string param() {return v_param;}  // getter
+		@property string param(string n) {return v_param = n;}  // setter
+		
+	Zmienna nie może mieć takiej samej nazwy, jak funkcje. Warto zwrócić
+	uwagę na fakt, że setter RÓWNIEŻ zwraca zmienną, którą właśnie ustawiamy.
+	Takie metody ładuję w jednej linii, żeby zmniejszyć objętośc kodu.
+	
+	Takich własności używamy jak zmiennych.
+	
+AUTOMATYCZNA EWALUACJA TYPU -------------------------------------------------
+
+	Krótko mówiąc, nie musisz się zastanawiać, jakiego typu ma być zmienna.
+	Kompilator zrobi to za Ciebie:
+	
+		auto int x = 5;
+		
+		auto funkcja()
+		{
+			return 3;
+		}
+
+SZABLONY ---------------------------------------------------------------------
+
+	W celu uniknięcia niejednoznaczności operatorów < i > szablony w języku D
+	mają trochę inną składnię. Szablonowe mogą być nie tylko klasy, ale też
+	funkcje itd. Wykorzystane jest to m.in. w module std.conv przez funkcję
+	to przeznaczoną do konwersji typów. Używa się tego tak:
+	
+		string str = "34.32";
+		double val = to!(double)(str);
+		
+ŁĄCZENIE Z C++ ---------------------------------------------------------------
+
+	Aby wykorzystać klasy C++ za pomocą języka D, muszą być one odpowiednio 
+	napisane. Przede wszystkim, D pozwala wyłącznie na wywoływanie wirtualnych
+	metod klas C++ lub funkcji niezawartych w klasie. Ponieważ nie można 
+	wywołać konstruktora, trzeba na zewnątrz klasy po stronie C++ stworzyć
+	funkcję, która utworzy nowy obiekt (przez new, czyli wskaźnikowo) i go
+	zwróci.
+	
+	// Kod C++
+	class MyClass
+	{
+		public:
+		MyClass();
+		
+		virtual void a();
+		virtual void b();
+	};
+	
+	MyClass *getMyClass();  // W definicji funkcji np. "return new MyClass();"
+	
+	Klasy C++ nie opakowuje się klasami D, lecz interfejsami. Po stronie D
+	należy więc zadeklarować opakowane w extern(C++) interfejs o nazwie klasy
+	oraz metodę pobierającą. Metoda w D nie ma treści, za to zwraca obiekt
+	tegoż interfejsu:
+	
+	// Kod D
+	extern(C++) interface MyClass
+	{
+		void a();
+		void b();
+	}
+	
+	extern(C++) MyClass getMyClass();
+	
+	Funkcje wirtualne oczywiście mogą przyjmować argumenty i zwracać wartości,
+	jednak trzeba pamiętać o tym, że niektóre dane D (takie, jak np. ciągi
+	znaków) trzeba przekonwertować do typów C++.

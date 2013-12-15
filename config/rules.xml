@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rules>
+	<terrains>
+		<terrain name="grass" img="img/terrains/grass.png">
+		</terrain>
+
+		<terrain name="forest" img="img/terrains/forest.png">
+		</terrain>
+
+		<terrain name="hill" img="img/terrains/hill.png">
+			<param name="height" value="5"></param>
+			<modifier param="range">+{height}</modifier>
+			<modifier when="onEnter" param="movement">-{height}</modifier>
+			<modifier when="onExit,{height}5+" param="wounds">-1</modifier>
+		</terrain>
+
+		<terrain name="swamp" img="img/terrains/swamp.png">
+			<modifier param="movement">*0.5</modifier>
+		</terrain>
+		
+		<terrain name="ruins" img="img/terrains/ruins.png">
+		</terrain>
+	</terrains>
+</rules>

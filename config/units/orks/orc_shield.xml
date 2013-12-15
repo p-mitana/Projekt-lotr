@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<unit name="Ork tarczownik" race="Orkowie" img="img/units/orc_shield.png">
+
+<!-- Parametry główne -->
+	<param name="fight_melee" value="3"/>
+	<param name="strength" value="3"/>
+	<param name="defence" value="5"/>
+	<param name="attack" value="1"/>
+	<param name="wounds" value="1"/>
+	<param name="courage" value="2"/>
+	<param name="movement" value="14"/>
+	<param name="points" value="6"/>
+	
+<!-- Parametry pomocnicze -->
+	<param name="distanceDodge" value="1"/>
+	
+<!-- Cechy specjalne -->
+	
+</unit>
