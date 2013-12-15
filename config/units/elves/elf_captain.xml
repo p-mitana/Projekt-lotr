@@ -12,7 +12,7 @@
 	<param name="attack" value="2"/>
 	<param name="wounds" value="2"/>
 	<param name="courage" value="6"/>
-	<param name="movement" value="14"/>
+	<param name="movement" value="6"/>
 	<param name="points" value="70"/>
 	
 <!-- Parametry pomocnicze -->
