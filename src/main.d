@@ -10,6 +10,8 @@ import terrains;
 import units;
 import ui;
 
+import core.thread;
+
 import std.array;
 import std.file;
 import std.path;
@@ -19,11 +21,16 @@ import std.string;
 /**
  * Główna klasa programu - zawiera wszystkie ważne obiekty, łączy wszystkie moduły.
  */
-class Main
+class Main : UICallback
 {
 	Terrain[string] terrains;  /// Tablica asocjacyjna terenów indeksowana nazwami.
 	Player[] players;  /// Tablica graczy
-	Board board;  /// Plansza symulacji
+	synchronized Board board;  /// Plansza symulacji
+	synchronized UIController ui;  /// Kontroler interfejsu użytkownika
+	synchronized int turnCount = 0;  /// Licznik tur
+	
+	Thread simulator;  /// Wątek odpowiedzialny za wykonywanie obliczeń
+	synchronized bool interrupt;  /// Należy ustawić, żeby przerwać symulację
 	
 	/**
 	 * Wczytuje konfigurację programu, tworzy wymagane obiekty oraz GUI (umieszczone
@@ -35,19 +42,22 @@ class Main
 		terrains = loadTerrains("config/rules.xml");
 		loadUnitConfig("config/units");
 		
+		// Utworzenie wątku symulującego
+		simulator = new Thread(&runSimulation);
+		
 		// Utworzenie interfejsu
-		UIController ui = new UIController();
+		ui = new UIController(this);
 		
 		// ==============================================================================
 		/* Ten kod tworzy jakąś domyślną symulację. Bardzo możliwe, że zostanie on
 		 * zamieniony na wczytywanie parametrów symulacji z pliku, konsoli lub jakiegoś
 		 * formularza w UI.
 		 */
-		Board board = new Board(70, 50, terrains["grass"]);
+		board = new Board(70, 50, terrains["grass"]);
 		ui.board = board;
 		
-		players ~= new Player("Gracz 1", "#ff0000", "#800000");
-		players ~= new Player("Gracz 2", "#0000ff", "#000080");
+		players ~= new TestPlayer("Gracz 1", "#ff0000", "#800000");
+		players ~= new TestPlayer("Gracz 2", "#0000ff", "#000080");
 		
 		for(int i = 3; i < 8; i++)
 		{
@@ -75,6 +85,90 @@ class Main
 		
 		// Uruchomienie interfejsu
 		ui.run();
+	}
+	
+	
+	/* ---------- METODY ZWIĄZANE Z PZEPROWADZANIEM SYMULACJI I JEJ WĄTKIEM ---------- */
+	
+	/**
+	 * Wykonuje jedną kolejkę symulacji.
+	 *
+	 * Returns:
+	 * Zwycięzki gracz
+	 */
+	Player nextTurn()
+	{
+		Player winner = null;
+		turnCount++;
+		
+		// Wykonanie ruchu
+		foreach(Player p; players)
+		{
+			p.doYourTurn(board);
+		}
+		
+		// Aktualizacja interfejsu
+		ui.updateBoard();
+		ui.turnCompleted(turnCount);
+		
+		//TESTOWE
+		if(turnCount == 100)
+		{
+			return players[0];
+		}
+		
+		// Zwrócenie wartości
+		return winner;
+	}
+	
+	/**
+	 * Metoda symulująca, wywołuje kolejną kolejkę co chwilę.
+	 */
+	void runSimulation()
+	{
+		Player winner = null;
+		interrupt = false;
+		
+		while(winner is null && !interrupt)
+		{
+			nextTurn();
+			simulator.sleep(dur!("msecs")(500));  // Metoda szablonowa dur zwraca wartość Duration
+		}
+		
+		if(winner)
+		{
+			// ktoś wygrał
+		}
+	}
+	
+	
+	/* ---------- METODY INTERFEJSU UICallback ---------- */
+	
+	/**
+	 * Rozpoczyna symulację.
+	 */
+	extern(C++) void simulationStart()
+	{
+		if(!simulator.isRunning())
+		{
+			simulator.start();
+		}
+	}
+	
+	/**
+	 * Zatrzymuje symulację.
+	 */
+	extern(C++) void simulationStop()
+	{
+		interrupt = true;
+	}
+	/**
+	 * Rozpoczyna symulację.
+	 */
+	
+	extern(C++) void simulationStep()
+	{
+		nextTurn();
 	}
 }
 

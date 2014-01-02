@@ -9,8 +9,10 @@
 /**
  * Tworzy interfejs użytkownika.
  */
-UI::UI()
+UI::UI(UICallback *callback)
 {
+	this->callback = callback;
+	
 		// Ubuntu SDK wymaga ustawienia zmiennej środowiskowej 	APP_ID.
 	setenv("APP_ID", "com.komnata_mitana.lotr", 1);
 	
@@ -18,7 +20,35 @@ UI::UI()
 	setSource(QUrl("qml/ui.qml"));
 	setResizeMode(QQuickView::SizeRootObjectToView);
 	
+	connect(rootObject(), SIGNAL(start()), this, SLOT(simulationStart()));
+	connect(rootObject(), SIGNAL(stop()), this, SLOT(simulationStop()));
+	connect(rootObject(), SIGNAL(step()), this, SLOT(simulationStep()));
+	
 	show();
+}
+
+/**
+ * Rozpoczyna symulację.
+ */
+void UI::simulationStart()
+{
+	callback->simulationStart();
+}
+
+/**
+ * Rozpoczyna symulację.
+ */
+void UI::simulationStop()
+{
+	callback->simulationStop();
+}
+
+/**
+ * Rozpoczyna symulację.
+ */
+void UI::simulationStep()
+{
+	callback->simulationStep();
 }
 
 /**
@@ -79,12 +109,20 @@ void UILink::insertUnit(int y, int x, char *imagePath, char *color1, char *color
 }
 
 /**
+ * Aktualizuje licznik tur
+ */
+void UILink::updateTurnCount(int turnCount)
+{
+	QMetaObject::invokeMethod(ui->rootObject(), "updateTurnCount", Q_ARG(QVariant, turnCount));
+}
+
+/**
  * Tworzy obiekt interfejsu oraz łącznik z językiem D.
  * 
  * Returns:
  * Obiekt sterujący interfejsem
  */
-UILink *createUI()
+UILink *createUI(UICallback *callback)
 {
 	// Tworzenie łącznika
 	UILink *link = new UILink();
@@ -95,7 +133,7 @@ UILink *createUI()
 	link->app = new QGuiApplication(argc, argv);
 	
 	// Tworzenie interfejsu
-	UI *ui = new UI();
+	UI *ui = new UI(callback);
 	ui->link = link;
 	link->ui = ui;
 	link->board = ui->rootObject()->findChild<QObject*>("board");

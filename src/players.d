@@ -4,23 +4,61 @@
  */
 module players;
 
+import board;
 import units;
 
+import std.stdio;
+
 /**
- * Klasa reprezentuje gracza.
- * 
- * TODO: Gdy jakiś typ gracza zostanie zaimplementowana, klasa ta ma stać
- * się abstrakcyjna.
+ * Klasa reprezentuje testowego gracza.
  */
-class Player
+class TestPlayer : Player
 {
-	private string v_name;  /// Nazwa gracza
-	private string v_color1;  /// Pierwszy kolor gracza
-	private string v_color2;  /// Drugi kolor gracza
+	/**
+	 * Konstruktor gracza.
+	 * Params:
+	 * name = Nazwa gracza
+	 * color1 = Górny kolor gradientu gracza
+	 * color2 = Dolny kolor gradientu gracza
+	 */
+	public this(string name, string color1, string color2)
+	{
+		super(name, color1, color2);
+	}
+	
+	/**
+	 * Wykonuje swoją kolejkę.
+	 * Params:
+	 * board = Plansza
+	 */
+	public override void doYourTurn(Board board)
+	{
+		// Tutaj gracz wydaje rozkazy
+		foreach(Unit u; units)
+		{
+			u.moveRel(board, 0, -1);
+		}
+	}
+}
+
+/**
+ * Bazowa, abstrakcyjna klasa reprezentuje gracza.
+ */
+abstract class Player
+{
+	private string v_name = "Gracz";  /// Nazwa gracza
+	private string v_color1 = "#ff0000";  /// Pierwszy kolor gracza
+	private string v_color2 = "#800000";  /// Drugi kolor gracza
 	private Unit[] units;  /// Jednostki gracza
+	
+	/*
+	 * Mimo faktu, że klasa jest abstrakcyjna, konstruktor jest,
+	 * celem wywołania go z klasy podrzędnej.
+	 */
 	
 	/**
 	 * Konstruktor gracza.
+	 * 
 	 * Params:
 	 * name = Nazwa gracza
 	 * color1 = Górny kolor gradientu gracza
@@ -32,6 +70,13 @@ class Player
 		v_color1 = color1;
 		v_color2 = color2;
 	}
+	
+	/**
+	 * Wykonuje kolejkę.
+	 * Params:
+	 * board = Plansza
+	 */
+	public void doYourTurn(Board board);
 	
 	/**
 	 * Dodaje jednostkę gracza.

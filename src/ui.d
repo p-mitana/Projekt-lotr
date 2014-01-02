@@ -5,6 +5,7 @@
 module ui;
 
 import board;
+import main;
 
 import std.stdio;
 import std.string;
@@ -23,9 +24,9 @@ class UIController
 	/**
 	 * Konstruktor kontrolera
 	 */
-	public this()
+	public this(Main main)
 	{
-		link = createUI();
+		link = createUI(main);
 	}
 	
 	/**
@@ -61,6 +62,17 @@ class UIController
 		}
 	}
 	
+	/**
+	 * Aktualizuje licznik tur w interfejsie.
+	 * 
+	 * Params:
+	 * turnCount = licznik tur po ostatniej kolejce
+	 */
+	public void turnCompleted(int turnCount)
+	{
+		link.updateTurnCount(turnCount);
+	}
+	
 	// Funkcje własności
 	
 	/// Ustawia planszę. Powoduje usunięcie planszy i utworzenie jej na nowo.
@@ -90,6 +102,17 @@ class UIController
 }
 
 /**
+ * Interfejs implementowany prwze klasę UIController. Służy do obsługi
+ * wywołań funkcji z poziomu języka C++.
+ */
+extern(C++) interface UICallback
+{
+	void simulationStart();
+	void simulationStop();
+	void simulationStep();
+}
+
+/**
  * Interfejs opakowujący C++'ową klasę UI. Klasa za przechowuje i kontroluje
  * wszystkie obiekty Qt, komunikując się z głównym programem w D.
  */
@@ -100,9 +123,10 @@ extern(C++) interface UILink
 	void appendField(int y, int x, immutable(char)* imagePath);  /// Dodaje pole
 	void clearField(int y, int x);  /// Usuwa jednostkę z pola
 	void insertUnit(int y, int x, immutable(char)* imagePath, immutable(char)* color1, immutable(char)* color2);  /// Ustawia jednostkę w polu
+	void updateTurnCount(int turnCount);  /// Aktualizuje licznik tur
 }
 
 /**
  * Funkcja C++ tworząca interfejs.
  */
-extern(C++) UILink createUI();
+extern(C++) UILink createUI(UICallback callback);

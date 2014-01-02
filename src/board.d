@@ -6,6 +6,8 @@ module board;
 import terrains;
 import units;
 
+import std.stdio;
+
 /**
  * Klasa reprezentuje planszę prostokątną o zadanych wymiarach.
  * Konstruktory tej planszy odpowiadają za generowanie planszy na
@@ -39,6 +41,32 @@ class Board
 			foreach(ref Field field; row)
 			{
 				field = new Field(terrain);
+			}
+		}
+	}
+	
+	/**
+	 * Zwraca do parametrów pozycję jednostki na planszy
+	 * Params:
+	 * Unit = jednostka
+	 * y = tam zostanie zapisania współrzędna Y
+	 * x = tam zostanie zapisania współrzędna X
+	*/
+	void getUnitPosition(Unit unit, out int y, out int x)
+	{
+		y = -1;
+		x = -1;
+		
+		foreach(int i, Field[] row; fields)
+		{
+			foreach(int j, Field field; row)
+			{
+				if(unit is field.unit)
+				{
+					y = i;
+					x = j;
+					return;
+				}
 			}
 		}
 	}

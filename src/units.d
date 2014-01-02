@@ -4,6 +4,7 @@
  */
 module units;
 
+import board;
 import players;
 
 import std.array;
@@ -56,6 +57,92 @@ class Unit
 	
 		parser.parse();
 	}
+	
+	// Akcje jednostek
+	
+	/**
+	 * Jednostka idzie na określone pole. Jeżeli nie może, nic się nie dzieje
+	 * Params:
+	 * board = Plasza
+	 * y = Współrzędna Y celu
+	 * x = Współrzędna X celu
+	 */
+	public void move(Board board, int y, int x)
+	{
+		int currY = -1;
+		int currX = -1;
+		board.getUnitPosition(this, currY, currX);
+		
+		// TODO: Jak określić, czy jednostka ma dość ruchu?
+		
+		// Sprawdzamy, czy pole istnieje i czy jest zajęte
+		if(y < 0 || y >= board.fields.length || x < 0 || x >= board.fields[0].length)
+			return;
+		
+		if(board[y][x].unit !is null)
+			return;
+		
+		// Wykonujemy ruch
+		board[y][x].unit = this;
+		board[currY][currX].unit = null;
+		
+		// Zaznaczamy pola do aktualizacji
+		board.changed[y][x] = true;
+		board.changed[currY][currX] = true;
+	}
+	
+	/**
+	 * Jednostka idzie określoną ilość pól względem aktualnej pozycji
+	 * . Jeżeli nie może, nic się nie dzieje
+	 * Params:
+	 * board = Plasza
+	 * y = Jednoskta pójdzie o tyle pól w dół
+	 * x = Jednoskta pójdzie o tyle pól w prawo
+	 */
+	public void moveRel(Board board, int y, int x)
+	{
+		int currY = -1;
+		int currX = -1;
+		
+		board.getUnitPosition(this, currY, currX);
+		
+		move(board, currY + y, currX + x);
+	}
+	
+	/**
+	 * Jednostka atakuje wręcz. Jeżeli wybrano cel, którego nie można
+	 * zaatakować, nic się nie dzieje.
+	 * Params:
+	 * board = Plasza
+	 * target = Atakowana jednostka
+	 */
+	public void attack(Board board, Unit target)
+	{
+		// Sprawdzenie, czy możemy atakować i wykonanie ataku
+	}
+	
+	/**
+	 * Jednostka strzela. Jeżeli wybrano cel, którego nie można
+	 * zaatakować, nic się nie dzieje
+	 * Params:
+	 * board = Plasza
+	 * target = Atakowana jednostka
+	 */
+	public void shoot(Board board, Unit target)
+	{
+		// Sprawdzenie, czy możemy stzelić i wykonanie strzału
+	}
+	
+	/**
+	 * Sprawdzenie, czy jednostka może strzelać
+	 * Returns
+	 * true, jeżeli jenostka może strzelać
+	 */
+	public bool isShooter()
+	{
+		return false;  // TODO
+	}
+	
 	
 	// Funkcje własności
 	

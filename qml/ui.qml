@@ -12,6 +12,10 @@ MainView
 	headerColor: "#555555";
 	backgroundColor: "#888888";
 	footerColor: "#aaaaaa";
+	
+	signal start();
+	signal stop();
+	signal step();
 		
 	PageStack
 	{
@@ -49,6 +53,64 @@ MainView
 				opened: true;
 				locked: true;
 				
+				Rectangle
+				{
+					anchors.verticalCenter: parent.verticalCenter;
+					width: units.gu(20);
+					height: units.gu(4);
+					color: "transparent";
+					
+					Label
+					{
+						id: turnCount;
+						anchors.verticalCenter: parent.verticalCenter;
+						anchors.horizontalCenter: parent.horizontalCenter;
+						color: "gray";
+						fontSize: "large";
+						text: "Czas: 0";
+					}
+				}
+				
+				ToolbarButton
+				{
+					id: startstop;
+					text: "Start";
+					iconSource: "../img/icons/start.svg";
+					
+					onTriggered:
+					{
+						if(text == "Start")
+						{
+							text = "Stop";
+							iconSource = "../img/icons/stop.svg";
+							step.enabled = "false";
+							root.start();
+						}
+						
+						else
+						{
+							text = "Start";
+							iconSource = "../img/icons/start.svg";
+							root.stop();
+						}
+					}
+				}
+				
+				ToolbarButton
+				{
+					id: step;
+					text: "Krok";
+					iconSource: "../img/icons/step.svg";
+					
+					onTriggered:
+					{
+						if(startstop.text == "Start")  // Nie działa, gdy symulacja jest uruchomiona
+						{
+							root.step();
+						}
+					}
+				}
+				
 /*				ToolbarButton
 				{
 					text: "Pomniejsz";
@@ -65,6 +127,7 @@ MainView
 				{
 					text: "Parametry";
 					iconSource: "../img/icons/properties.svg";
+					
                 	onTriggered:
                 	{
                 		pagestack.push(settings);
@@ -81,5 +144,10 @@ MainView
 			title: "Parametry symulacji";
 			visible: false;
 		}
+	}
+	
+	function updateTurnCount(count)
+	{
+		turnCount.text = "Czas: " + count;
 	}
 }

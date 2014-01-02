@@ -31,6 +31,7 @@ using namespace std;
 // Wcześniejsze deklaracje
 class UI;
 class UILink;
+class UICallback;
 
 /**
  * Klasa zarządzająca interfejsem graficznym w QT
@@ -41,8 +42,25 @@ class UI : public QQuickView
 	
 	public:
 	UILink *link;
+	UICallback *callback;
 	
-	UI();  // Konstruktor
+	UI(UICallback *callback);  // Konstruktor
+	
+	public slots:
+	void simulationStart();  // Rozpoczyna/wznawia symulację
+	void simulationStop();  // Zatrzymuje symulację
+	void simulationStep();  // Wykonuje jedną kolejkę symulacji
+};
+
+/**
+ * Klasa obudowująca interfejs UICallback z języka D, służy do wywoływania funkcji klasy Main.
+ */
+class UICallback
+{
+	public:
+	virtual void simulationStart();  // Rozpoczyna/wznawia symulację
+	virtual void simulationStop();  // Zatrzymuje symulację
+	virtual void simulationStep();  // Wykonuje jedną kolejkę symulacji
 };
 
 /**
@@ -60,8 +78,9 @@ class UILink
 	virtual void appendField(int y, int x, char* imagePath);  // Dodaje pole
 	virtual void clearField(int y, int x);  // Usuwa jednostkę z pola
 	virtual void insertUnit(int y, int x, char *imagePath, char *color1, char *color2);  // Ustawia jednostkę w polu
+	virtual void updateTurnCount(int turnCount);  // Aktualizuje licznik tur
 };
 
-UILink *createUI();  // Metoda tworząca interfejs
+UILink *createUI(UICallback *callback);  // Metoda tworząca interfejs
 
 #endif
