@@ -11,5 +11,11 @@ UbuntuShape
 	width: units.gu(3);
 	height: units.gu(3);
 	
-	image: Image {}
+	Image
+	{
+		width: units.gu(2);
+		height: units.gu(2);
+		anchors.horizontalCenter: parent.horizontalCenter;
+		anchors.verticalCenter: parent.verticalCenter;
+	}
 }

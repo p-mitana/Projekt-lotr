@@ -28,7 +28,7 @@ UbuntuShape
 		var unit = component.createObject(field);
 		
 		unit.objectName = "field_" + y + "_" + x + "_unit";
-		unit.image.source = "../" + imagePath;
+		unit.children[1].source = "../" + imagePath;
 		
 		unit.color = color1;
 		unit.gradientColor = color2;
