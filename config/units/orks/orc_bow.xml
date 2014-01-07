@@ -6,7 +6,7 @@
 	<param name="fight_melee" value="3"/>
 	<param name="fight_shoot" value="5"/>
 	<param name="range" value="24"/>
-	<param name="bowStrength" value="2"/>
+	<param name="bow_strength" value="2"/>
 	<param name="strength" value="3"/>
 	<param name="defence" value="4"/>
 	<param name="attack" value="1"/>

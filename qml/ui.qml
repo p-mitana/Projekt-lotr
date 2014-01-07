@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Ubuntu.Components 0.1
+import Ubuntu.Components.Popups 0.1
 
 MainView
 {
@@ -136,6 +137,18 @@ MainView
                 	}
             	}
 			}
+			
+			Dialog
+			{
+				id: battleOverDialog;
+				title: "Koniec bitwy";
+				
+				Button
+				{
+					text: "Zamknij";
+					onClicked: PopupUtils.close(battleOverDialog);
+				}
+			}
 		}
 	
 		Page
@@ -149,5 +162,15 @@ MainView
 	function updateTurnCount(count)
 	{
 		turnCount.text = "Czas: " + count;
+	}
+	
+	function showBattleOverDialog(winner)
+	{
+		battleOverDialog.text = "Zwycięzca: " + winner;
+		battleOverDialog.show();
+		
+		// Ustawienie przycisku start/stop
+		startstop.text = "Start";
+		startstop.iconSource = "../img/icons/start.svg";
 	}
 }

@@ -117,6 +117,14 @@ void UILink::updateTurnCount(int turnCount)
 }
 
 /**
+ * Pokazuje dialog końca bitwy
+ */
+void UILink::showBattleOverDialog(char* winner)
+{
+	QMetaObject::invokeMethod(ui->rootObject(), "showBattleOverDialog", Q_ARG(QVariant, winner));
+}
+
+/**
  * Tworzy obiekt interfejsu oraz łącznik z językiem D.
  * 
  * Returns:

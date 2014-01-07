@@ -25,6 +25,7 @@ class Main : UICallback
 {
 	Terrain[string] terrains;  /// Tablica asocjacyjna terenów indeksowana nazwami.
 	Player[] players;  /// Tablica graczy
+	synchronized Player winner = null;  /// Zwycięzca
 	synchronized Board board;  /// Plansza symulacji
 	synchronized UIController ui;  /// Kontroler interfejsu użytkownika
 	synchronized int turnCount = 0;  /// Licznik tur
@@ -59,25 +60,13 @@ class Main : UICallback
 		players ~= new TestPlayer("Gracz 1", "#ff0000", "#800000");
 		players ~= new TestPlayer("Gracz 2", "#0000ff", "#000080");
 		
-		for(int i = 3; i < 8; i++)
-		{
-			for(int j = 5; j < 7; j++)
-			{
-				players[0].addUnit(new Unit("Elf łucznik"));
-				board[i][j].unit = players[0].getUnit(-1);
-				board.changed[i][j] = true;
-			}
-		}
+		players[0].addUnit(new Unit("Elf łucznik"));
+		board[3][5].unit = players[0].getUnit(-1);
+		board.changed[3][5] = true;
 		
-		for(int i = 3; i < 8; i++)
-		{
-			for(int j = 15; j < 17; j++)
-			{
-				players[1].addUnit(new Unit("Ork łucznik"));
-				board[i][j].unit = players[1].getUnit(-1);
-				board.changed[i][j] = true;
-			}
-		}
+		players[1].addUnit(new Unit("Ork łucznik"));
+		board[4][8].unit = players[1].getUnit(-1);
+		board.changed[4][8] = true;
 		
 		ui.updateBoard();
 		
@@ -98,14 +87,54 @@ class Main : UICallback
 	 */
 	Player nextTurn()
 	{
-		Player winner = null;
 		turnCount++;
 		
-		// Wykonanie ruchu
+		for(int i = 0; ; i++)  // Pętlę przerwę z wnętrza
+		{
+			bool unitProcessed = false;
+			
+			foreach(Player p; players)  // Iterujemy po graczach - jeżeli ma tyle jednostek, ruszają się
+			{
+				if(i < p.units.length)
+				{
+					if(!p.units[i].isAlive())  // Jednostka nie żyje, pomijamy ją
+						continue;
+					
+					p.doYourTurn(board, p.units[i]);
+					unitProcessed = true;
+				}
+			}
+			
+			if(!unitProcessed)  // Jeżeli żadna jednostka nie dostała ruchu w tej iteracji, koniec kolejki
+				break;
+		}
+		
+		// Aktualizacja tablic jednostek
 		foreach(Player p; players)
 		{
-			p.doYourTurn(board);
+			foreach_reverse(Unit u; p.units)
+			{
+				if(!u.isAlive())
+				{
+					p.removeUnit(u);
+				}
+			}
 		}
+		
+		// Sprawdzenie wyniku bitwy (zwycięztwo, gdy tylko jeden gracz ma jednostki)
+		int playersAlive = 0;
+		
+		foreach(Player p; players)
+		{
+			if(p.units.length > 0)
+			{
+				playersAlive++;
+				winner = p;
+			}
+		}
+		
+		if(playersAlive > 1)
+			winner = null;
 		
 		// Aktualizacja interfejsu
 		ui.updateBoard();
@@ -114,7 +143,7 @@ class Main : UICallback
 		//TESTOWE
 		if(turnCount == 100)
 		{
-			return players[0];
+			winner = players[0];
 		}
 		
 		// Zwrócenie wartości
@@ -126,7 +155,6 @@ class Main : UICallback
 	 */
 	void runSimulation()
 	{
-		Player winner = null;
 		interrupt = false;
 		
 		while(winner is null && !interrupt)
@@ -135,10 +163,8 @@ class Main : UICallback
 			simulator.sleep(dur!("msecs")(500));  // Metoda szablonowa dur zwraca wartość Duration
 		}
 		
-		if(winner)
-		{
-			// ktoś wygrał
-		}
+		if(winner !is null)
+			ui.battleOver(winner.name);
 	}
 	
 	
@@ -162,13 +188,20 @@ class Main : UICallback
 	{
 		interrupt = true;
 	}
-	/**
-	 * Rozpoczyna symulację.
-	 */
 	
+	/**
+	 * Wykonuje krok.
+	 */
 	extern(C++) void simulationStep()
 	{
-		nextTurn();
+		if(winner is null)
+		{
+			nextTurn();
+		}
+		else
+		{
+			ui.battleOver(winner.name);
+		}
 	}
 }
 

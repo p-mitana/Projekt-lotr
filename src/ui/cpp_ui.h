@@ -79,6 +79,7 @@ class UILink
 	virtual void clearField(int y, int x);  // Usuwa jednostkę z pola
 	virtual void insertUnit(int y, int x, char *imagePath, char *color1, char *color2);  // Ustawia jednostkę w polu
 	virtual void updateTurnCount(int turnCount);  // Aktualizuje licznik tur
+	virtual void showBattleOverDialog(char *winner);  // Pokazuje dialog końca bitwy
 };
 
 UILink *createUI(UICallback *callback);  // Metoda tworząca interfejs

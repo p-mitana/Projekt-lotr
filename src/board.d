@@ -6,6 +6,7 @@ module board;
 import terrains;
 import units;
 
+import std.math;
 import std.stdio;
 
 /**
@@ -69,6 +70,26 @@ class Board
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Zwraca odległość między punktami
+	 * Params:
+	 * y1 = Współrzędna Y punktu 1
+	 * y2 = Współrzędna Y punktu 2
+	 * x1 = Współrzędna X punktu 1
+	 * x2 = Współrzędna X punktu 2
+	 * straight = czy mierzymy w linii prostej
+	 * Returns:
+	 * Odległość między polami
+	 */
+	double distance(int y1, int x1, int y2, int x2, bool straight = true)  // TODO: Zmienić straight na false
+	{
+		if(straight)
+			return sqrt(pow(abs(y1-y2), 2.0) + pow(abs(x1-x2), 2.0));
+		
+		else
+			return -1.0;
 	}
 	
 	/**

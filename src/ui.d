@@ -73,6 +73,16 @@ class UIController
 		link.updateTurnCount(turnCount);
 	}
 	
+	/**
+	 * Informuje o końcu bitwy.
+	 * Params:
+	 * winner = Nazwa zwyciężkiego gracza
+	 */
+	public void battleOver(string winner)
+	{
+		link.showBattleOverDialog(toStringz(winner));
+	}
+	
 	// Funkcje własności
 	
 	/// Ustawia planszę. Powoduje usunięcie planszy i utworzenie jej na nowo.
@@ -124,6 +134,7 @@ extern(C++) interface UILink
 	void clearField(int y, int x);  /// Usuwa jednostkę z pola
 	void insertUnit(int y, int x, immutable(char)* imagePath, immutable(char)* color1, immutable(char)* color2);  /// Ustawia jednostkę w polu
 	void updateTurnCount(int turnCount);  /// Aktualizuje licznik tur
+	void showBattleOverDialog(immutable(char)* winner);  /// Pokazuje dialog końca bitwy
 }
 
 /**

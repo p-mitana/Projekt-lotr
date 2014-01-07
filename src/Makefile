@@ -1,4 +1,4 @@
-../bin/main : ../obj/board.o ../obj/main.o ../obj/players.o ../obj/terrains.o ../obj/units.o ../obj/ui.o\
+../bin/main : ../obj/board.o ../obj/main.o ../obj/players.o ../obj/terrains.o ../obj/units.o ../obj/utils.o ../obj/ui.o\
 				../obj/cpp_ui.o
 	dmd -of../bin/main ../obj/*.o -L-lQt5Core -L-lQt5Gui -L-lQt5Quick -L-lQt5Qml -L-lstdc++
 
@@ -23,3 +23,6 @@
 
 ../obj/units.o : units.d
 	dmd -c -Dd../doc units.d -of../obj/units.o
+
+../obj/utils.o : utils.d
+	dmd -c -Dd../doc utils.d -of../obj/utils.o

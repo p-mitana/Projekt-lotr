@@ -31,12 +31,14 @@ class TestPlayer : Player
 	 * Params:
 	 * board = Plansza
 	 */
-	public override void doYourTurn(Board board)
+	public override void doYourTurn(Board board, Unit unit)
 	{
-		// Tutaj gracz wydaje rozkazy
-		foreach(Unit u; units)
+		if(name == "Gracz 1")
 		{
-			u.moveRel(board, 0, -1);
+			unit.attack(board, board[4][8].unit);
+		}
+		else
+		{
 		}
 	}
 }
@@ -49,7 +51,7 @@ abstract class Player
 	private string v_name = "Gracz";  /// Nazwa gracza
 	private string v_color1 = "#ff0000";  /// Pierwszy kolor gracza
 	private string v_color2 = "#800000";  /// Drugi kolor gracza
-	private Unit[] units;  /// Jednostki gracza
+	Unit[] units;  /// Jednostki gracza
 	
 	/*
 	 * Mimo faktu, że klasa jest abstrakcyjna, konstruktor jest,
@@ -76,7 +78,7 @@ abstract class Player
 	 * Params:
 	 * board = Plansza
 	 */
-	public void doYourTurn(Board board);
+	public void doYourTurn(Board board, Unit unit);
 	
 	/**
 	 * Dodaje jednostkę gracza.
