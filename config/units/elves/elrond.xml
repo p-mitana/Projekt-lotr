@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<unit name="Elron" race="Elfowie" img="img/units/elrond.png">
+<unit name="Elrond" race="Elfowie" img="img/units/elrond.png">
 
 <!-- Parametry główne -->
 	<param name="fight_melee" value="6"/>

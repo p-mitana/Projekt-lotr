@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtWebKit 3.0
 import Ubuntu.Components 0.1
 import Ubuntu.Components.Popups 0.1
 
@@ -21,132 +22,156 @@ MainView
 	PageStack
 	{
 		id: pagestack;
-		Component.onCompleted: push(simultion);
+		Component.onCompleted: push(tabs);
 		
-		Page
+		Tabs
 		{
-			id: simultion;
-			title: "Symulacja";
-			visible: false;
+			id: tabs;
 			
-			Flickable
+			Tab
 			{
-				anchors.fill: parent;
-				anchors.topMargin: units.gu(1);
-				anchors.leftMargin: units.gu(1);
-				anchors.rightMargin: units.gu(1);
-				anchors.bottomMargin: units.gu(1);
-				
-				contentWidth: board.width;
-				contentHeight: board.height;
-				
-				Board
+				title: "Plansza";
+				page: Page
 				{
-					id: board;
-					objectName: "board";
-				}
-
-			}
-			
-			tools: ToolbarItems
-			{
-				id: toolbar;
-				opened: true;
-				locked: true;
-				
-				Rectangle
-				{
-					anchors.verticalCenter: parent.verticalCenter;
-					width: units.gu(20);
-					height: units.gu(4);
-					color: "transparent";
+					id: simultion;
 					
-					Label
+					Flickable
 					{
-						id: turnCount;
-						anchors.verticalCenter: parent.verticalCenter;
-						anchors.horizontalCenter: parent.horizontalCenter;
-						color: "gray";
-						fontSize: "large";
-						text: "Czas: 0";
-					}
-				}
-				
-				ToolbarButton
-				{
-					id: startstop;
-					text: "Start";
-					iconSource: "../img/icons/start.svg";
-					
-					onTriggered:
-					{
-						if(text == "Start")
+						id: flick;
+						
+						anchors.fill: parent;
+						anchors.topMargin: units.gu(1);
+						anchors.leftMargin: units.gu(1);
+						anchors.rightMargin: units.gu(1);
+						anchors.bottomMargin: units.gu(1);
+						
+						contentWidth: board.width;
+						contentHeight: board.height;
+						
+						Board
 						{
-							text = "Stop";
-							iconSource = "../img/icons/stop.svg";
-							step.enabled = "false";
-							root.start();
+							id: board;
+							objectName: "board";
 						}
 						
-						else
-						{
-							text = "Start";
-							iconSource = "../img/icons/start.svg";
-							root.stop();
-						}
 					}
-				}
-				
-				ToolbarButton
-				{
-					id: step;
-					text: "Krok";
-					iconSource: "../img/icons/step.svg";
 					
-					onTriggered:
+					tools: ToolbarItems
 					{
-						if(startstop.text == "Start")  // Nie działa, gdy symulacja jest uruchomiona
+						id: toolbar;
+						opened: true;
+						locked: true;
+						
+						Rectangle
 						{
-							root.step();
+							anchors.verticalCenter: parent.verticalCenter;
+							width: units.gu(20);
+							height: units.gu(4);
+							color: "transparent";
+							
+							Label
+							{
+								id: turnCount;
+								anchors.verticalCenter: parent.verticalCenter;
+								anchors.horizontalCenter: parent.horizontalCenter;
+								color: "gray";
+								fontSize: "large";
+								text: "Czas: 0";
+							}
+						}
+						
+						ToolbarButton
+						{
+							id: startstop;
+							text: "Start";
+							iconSource: "../img/icons/start.svg";
+							
+							onTriggered:
+							{
+								if(text == "Start")
+								{
+									text = "Stop";
+									iconSource = "../img/icons/stop.svg";
+									step.enabled = "false";
+									root.start();
+								}
+								
+								else
+								{
+									text = "Start";
+									iconSource = "../img/icons/start.svg";
+									root.stop();
+								}
+							}
+						}
+						
+						ToolbarButton
+						{
+							id: step;
+							text: "Krok";
+							iconSource: "../img/icons/step.svg";
+							
+							onTriggered:
+							{
+								if(startstop.text == "Start")  // Nie działa, gdy symulacja jest uruchomiona
+								{
+									root.step();
+								}
+							}
+						}
+						
+						/*				ToolbarButton
+						*	{
+						*		text: "Pomniejsz";
+						*		iconSource: "../img/icons/zoomOut.svg";
+					}
+					
+					ToolbarButton
+					{
+						text: "Powiększ";
+						iconSource: "../img/icons/zoomIn.svg";
+					}
+					*/				
+						ToolbarButton
+						{
+							text: "Parametry";
+							iconSource: "../img/icons/properties.svg";
+							
+							onTriggered:
+							{
+								pagestack.push(settings);
+								settings.tools.opened = true;
+								settings.tools.locked = true;
+							}
+						}
+					}
+					
+					Dialog
+					{
+						id: battleOverDialog;
+						title: "Koniec bitwy";
+						
+						Button
+						{
+							text: "Zamknij";
+							onClicked: PopupUtils.close(battleOverDialog);
 						}
 					}
 				}
-				
-/*				ToolbarButton
-				{
-					text: "Pomniejsz";
-					iconSource: "../img/icons/zoomOut.svg";
-				}
-				
-				ToolbarButton
-				{
-					text: "Powiększ";
-					iconSource: "../img/icons/zoomIn.svg";
-				}
-*/				
-				ToolbarButton
-				{
-					text: "Parametry";
-					iconSource: "../img/icons/properties.svg";
-					
-                	onTriggered:
-                	{
-                		pagestack.push(settings);
-						settings.tools.opened = true;
-						settings.tools.locked = true;
-                	}
-            	}
 			}
 			
-			Dialog
+			Tab
 			{
-				id: battleOverDialog;
-				title: "Koniec bitwy";
-				
-				Button
+				title: "Przebieg bitwy";
+				page: Page
 				{
-					text: "Zamknij";
-					onClicked: PopupUtils.close(battleOverDialog);
+					WebView
+					{
+						width: parent.width;
+						height: parent.height;
+						
+						id: webview;
+					}
 				}
 			}
 		}
@@ -166,11 +191,16 @@ MainView
 	
 	function showBattleOverDialog(winner)
 	{
-		battleOverDialog.text = "Zwycięzca: " + winner;
+		battleOverDialog.text = winner + " wygrywa bitwę.";
 		battleOverDialog.show();
 		
 		// Ustawienie przycisku start/stop
 		startstop.text = "Start";
 		startstop.iconSource = "../img/icons/start.svg";
+	}
+	
+	function log(html)
+	{
+		webview.loadHtml('<html><head><style type="text/css">* {font-family: Ubuntu Mono;}</style><head><body>' + html + '</body></html>');
 	}
 }

@@ -125,6 +125,14 @@ void UILink::showBattleOverDialog(char* winner)
 }
 
 /**
+ * Aktualizuje loga w WebView.
+ */
+void UILink::log(char* html)
+{
+	QMetaObject::invokeMethod(ui->rootObject(), "log", Q_ARG(QVariant, html));
+}
+
+/**
  * Tworzy obiekt interfejsu oraz łącznik z językiem D.
  * 
  * Returns:

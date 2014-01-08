@@ -7,6 +7,7 @@ module players;
 import board;
 import units;
 
+import std.conv;
 import std.stdio;
 
 /**
@@ -35,7 +36,8 @@ class TestPlayer : Player
 	{
 		if(name == "Gracz 1")
 		{
-			unit.attack(board, board[4][8].unit);
+			if(board[4][8].unit !is null)
+				unit.shoot(board, board[4][8].unit);
 		}
 		else
 		{
@@ -89,6 +91,7 @@ abstract class Player
 	{
 		units ~= unit;
 		unit.owner = this;
+		unit.index = to!(int)(units.length);
 	}
 	
 	/**

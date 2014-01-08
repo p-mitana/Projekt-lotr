@@ -5,6 +5,7 @@
 module units;
 
 import board;
+import main;
 import players;
 import utils;
 
@@ -30,6 +31,7 @@ class Unit
 	private string v_race;  /// Rasa
 	private string v_imagePath;  /// Ścieżka do obrazka
 	private Player v_owner;  /// Właściciel
+	private int v_index;  /// Indeks - unikalny dla gracza
 	int[string] params;  /// Parametry
 	string[] abilities;  /// Zdolności specjalne
 	
@@ -99,6 +101,8 @@ class Unit
 		// Zaznaczamy pola do aktualizacji
 		board.changed[y][x] = true;
 		board.changed[currY][currX] = true;
+		
+		log ~= format(`<p><span style="color: %s"><b>%s (#%d)</b></span> idzie na pole (%d, %d)</p>`, owner.color1, name, index, y, x);
 		
 		return true;
 	}
@@ -170,7 +174,14 @@ class Unit
 		if(!move(board, attackY, attackX))  // Za daleko
 			return;
 		
+		// Atak
+		log ~= format(`<p><span style="color: %s;"><b>%s (#%d)</b></span> rozpoczyna walkę z 
+				<span style="color: %s;"><b>%s (#%d)</b></span>.<br/>`,
+				owner.color1, name, index, target.owner.color1, target.name, target.index);
+		
 		fight(board, target, false);
+		
+		log ~= `</p>`;
 	}
 	
 	/**
@@ -198,7 +209,13 @@ class Unit
 			return;
 		
 		// Strzał
+		log ~= format(`<p><span style="color: %s;"><b>%s (#%d)</b></span> strzela do
+				<span style="color: %s;"><b>%s (#%d)</b></span>.<br/>`,
+				owner.color1, name, index, target.owner.color1, target.name, target.index);
+		
 		fight(board, target, true);
+		
+		log ~= `</p>`;
 	}
 	
 	/**
@@ -219,7 +236,11 @@ class Unit
 		if(distance)  // Po prostu sprawdzamy, czy trafi
 		{
 			if(rollK6() < params["fight_shoot"])  // Pudło
+			{
+				log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> nie trafia.<br/>`,
+						owner.color1, name, index);
 				return;
+			}
 			
 			attacker = this;
 			attackee = target;
@@ -249,6 +270,12 @@ class Unit
 			}
 		}
 		
+		if(!distance)
+		{
+			log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> zaatakuje.<br/>`,
+					attacker.owner.color1, attacker.name, attacker.index);
+		}
+		
 		// Wykonujemy atak
 		int woundValue = woundChart[attacker.params[strengthParam]][attackee.params["defence"]];
 		int firstRollRequired = woundValue >= 10 ? woundValue / 10 : woundValue;
@@ -256,13 +283,19 @@ class Unit
 		
 			// Jeżeli woundValue < 10, to drugi rzut ma być min. 1, a więc zawsze trafi.
 		
-		if(rollK6() > firstRollRequired)
+		int firstRoll = rollK6();
+		int secondRoll = rollK6();
+		
+		if(firstRoll >= firstRollRequired)
 		{
-			if(rollK6() > secondRollRequired)  // Atak się powiódł
+			if(secondRoll >= secondRollRequired)  // Atak się powiódł
 			{
 				attackee.damaged(board);
+				return;
 			}
 		}
+		
+		log ~= `Atak nie powiódł się.<br/>`;
 	}
 	
 	/**
@@ -294,11 +327,17 @@ class Unit
 	 */
 	public bool damaged(Board board)
 	{
+		log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> otrzymuje obrażenia.<br/>`, 
+				owner.color1, name, index);
+						
 		params["wounds"]--;
 		
 		// Usuń jednostkę, jeżeli nie żyje.
 		if(!isAlive())
 		{
+			log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> nie żyje.<br/>`, 
+					owner.color1, name, index);
+			
 			int y, x;
 			board.getUnitPosition(this, y, x);
 			board[y][x].unit = null;
@@ -322,6 +361,9 @@ class Unit
 	
 	public @property Player owner() { return v_owner;}  /// Zwraca właściciela jednostki
 	public @property Player owner(Player owner) {return v_owner = owner;}  /// Ustawia właściciela jednostki
+	
+	public @property int index() { return v_index;}  /// Zwraca indeks jednostki
+	public @property int index(int index) {return v_index = index;}  /// Ustawia indeks jednostki
 }
 
 /**

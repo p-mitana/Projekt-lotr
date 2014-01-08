@@ -17,6 +17,8 @@ import std.file;
 import std.path;
 import std.stdio;
 import std.string;
+	
+static string log;  /// Kod HTML loga
 
 /**
  * Główna klasa programu - zawiera wszystkie ważne obiekty, łączy wszystkie moduły.
@@ -29,6 +31,7 @@ class Main : UICallback
 	synchronized Board board;  /// Plansza symulacji
 	synchronized UIController ui;  /// Kontroler interfejsu użytkownika
 	synchronized int turnCount = 0;  /// Licznik tur
+	synchronized int sleepTime = 250;  /// Czas między kolejkami
 	
 	Thread simulator;  /// Wątek odpowiedzialny za wykonywanie obliczeń
 	synchronized bool interrupt;  /// Należy ustawić, żeby przerwać symulację
@@ -60,11 +63,24 @@ class Main : UICallback
 		players ~= new TestPlayer("Gracz 1", "#ff0000", "#800000");
 		players ~= new TestPlayer("Gracz 2", "#0000ff", "#000080");
 		
-		players[0].addUnit(new Unit("Elf łucznik"));
+
+		players[0].addUnit(new Unit("Elrond"));
 		board[3][5].unit = players[0].getUnit(-1);
 		board.changed[3][5] = true;
+		players[0].addUnit(new Unit("Elf łucznik"));
+		board[4][5].unit = players[0].getUnit(-1);
+		board.changed[4][5] = true;
+		players[0].addUnit(new Unit("Elf łucznik"));
+		board[5][5].unit = players[0].getUnit(-1);
+		board.changed[5][5] = true;
+		players[0].addUnit(new Unit("Elf łucznik"));
+		board[6][5].unit = players[0].getUnit(-1);
+		board.changed[6][5] = true;
+		players[0].addUnit(new Unit("Legolas"));
+		board[7][5].unit = players[0].getUnit(-1);
+		board.changed[7][5] = true;
 		
-		players[1].addUnit(new Unit("Ork łucznik"));
+		players[1].addUnit(new Unit("Gothmog"));
 		board[4][8].unit = players[1].getUnit(-1);
 		board.changed[4][8] = true;
 		
@@ -81,13 +97,12 @@ class Main : UICallback
 	
 	/**
 	 * Wykonuje jedną kolejkę symulacji.
-	 *
-	 * Returns:
-	 * Zwycięzki gracz
 	 */
-	Player nextTurn()
+	void nextTurn()
 	{
 		turnCount++;
+		
+		log ~= format(`<div style="font-size: 24px;">Tura %d</div>`, turnCount);
 		
 		for(int i = 0; ; i++)  // Pętlę przerwę z wnętrza
 		{
@@ -140,14 +155,16 @@ class Main : UICallback
 		ui.updateBoard();
 		ui.turnCompleted(turnCount);
 		
-		//TESTOWE
-		if(turnCount == 100)
+		if(winner !is null)
 		{
-			winner = players[0];
+			log ~= format(`<div style="font-size: 24px;"><span style="color: %s;">%s</span> wygrywa bitwę.</div>`,
+					winner.color1, winner.name);
+					
+			ui.battleOver(winner.name);
 		}
 		
-		// Zwrócenie wartości
-		return winner;
+		// Aktualizacja loga
+		ui.log(log);
 	}
 	
 	/**
@@ -160,11 +177,8 @@ class Main : UICallback
 		while(winner is null && !interrupt)
 		{
 			nextTurn();
-			simulator.sleep(dur!("msecs")(500));  // Metoda szablonowa dur zwraca wartość Duration
+			simulator.sleep(dur!("msecs")(sleepTime));  // Metoda szablonowa dur zwraca wartość Duration
 		}
-		
-		if(winner !is null)
-			ui.battleOver(winner.name);
 	}
 	
 	

@@ -83,6 +83,16 @@ class UIController
 		link.showBattleOverDialog(toStringz(winner));
 	}
 	
+	/**
+	 * Aktualizuje loga.
+	 * Params:
+	 * logHtml = Kod HTML loga
+	 */
+	public void log(string logHtml)
+	{
+		link.log(toStringz(logHtml));
+	}
+	
 	// Funkcje własności
 	
 	/// Ustawia planszę. Powoduje usunięcie planszy i utworzenie jej na nowo.
@@ -135,6 +145,7 @@ extern(C++) interface UILink
 	void insertUnit(int y, int x, immutable(char)* imagePath, immutable(char)* color1, immutable(char)* color2);  /// Ustawia jednostkę w polu
 	void updateTurnCount(int turnCount);  /// Aktualizuje licznik tur
 	void showBattleOverDialog(immutable(char)* winner);  /// Pokazuje dialog końca bitwy
+	void log(immutable(char)* html);  /// Przesyła informacje do loga
 }
 
 /**
