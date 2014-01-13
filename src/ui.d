@@ -130,6 +130,8 @@ extern(C++) interface UICallback
 	void simulationStart();
 	void simulationStop();
 	void simulationStep();
+	void simulationReset();
+	void saveLog();
 }
 
 /**

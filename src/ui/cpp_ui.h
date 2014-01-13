@@ -50,6 +50,8 @@ class UI : public QQuickView
 	void simulationStart();  // Rozpoczyna/wznawia symulację
 	void simulationStop();  // Zatrzymuje symulację
 	void simulationStep();  // Wykonuje jedną kolejkę symulacji
+	void simulationReset();  // Resetuje symulację
+	void saveLog();  // Zapisuje loga
 };
 
 /**
@@ -61,6 +63,8 @@ class UICallback
 	virtual void simulationStart();  // Rozpoczyna/wznawia symulację
 	virtual void simulationStop();  // Zatrzymuje symulację
 	virtual void simulationStep();  // Wykonuje jedną kolejkę symulacji
+	virtual void simulationReset();  // Resetuje
+	virtual void saveLog();  // Zapisujemy loga
 };
 
 /**

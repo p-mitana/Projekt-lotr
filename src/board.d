@@ -29,8 +29,9 @@ class Board
 	 * h = Szerokość planszy
 	 * w = Wysokość planszy
 	 * terrain = Teren pokrywający planszę
+	 * sectorTerrains = Tereny w poszczególnych sektorach
 	 */
-	public this(int w, int h, Terrain terrain)
+	public this(int w, int h, Terrain terrain, Terrain[9] sectorTerrains)
 	{
 		fields.length = h;
 		changed.length = h;
@@ -39,14 +40,23 @@ class Board
 			row.length = w;
 			changed[i].length = w;
 			
-			foreach(ref Field field; row)
+			foreach(int j, ref Field field; row)
 			{
-				field = new Field(terrain);
+				// Określenie sektora
+				int sector = 0;
+				sector += 3*(3*i / h);
+				sector += 3*j / w;
+				
+				// Stworzenie pola
+				if(sectorTerrains[sector] !is null)
+					field = new Field(sectorTerrains[sector], i, j);
+				else
+					field = new Field(terrain, i, j);
 			}
 		}
 	}
 	
-	/**
+/+	/**
 	 * Zwraca do parametrów pozycję jednostki na planszy
 	 * Params:
 	 * Unit = jednostka
@@ -71,7 +81,7 @@ class Board
 			}
 		}
 	}
-	
++/	
 	/**
 	 * Zwraca odległość między punktami
 	 * Params:
@@ -114,17 +124,23 @@ class Field
 {
 	private Terrain v_terrain;  /// Teren
 	private Unit v_unit;  /// Jednostka stojąca na polu
+	private const int y, x;  /// Współrzędne pola
 	
 	/**
 	 * Konstruktor pola.
 	 * Params:
 	 * terrain = Teren
+	 * y = Współrzędna Y
+	 * x = Współrzędna X
 	 * unit = Jednostka na tym polu
 	 */
-	public this(Terrain terrain, Unit unit = null)
+	public this(Terrain terrain, int y, int x, Unit unit = null)
 	{
 		v_terrain = terrain;
 		v_unit = unit;
+		
+		this.y = y;
+		this.x = x;
 	}
 	
 	// Funkcje własności
@@ -132,5 +148,18 @@ class Field
 	public @property Terrain terrain(Terrain terrain) {return v_terrain = terrain;}  // Ustawia teren na tym polu
 	
 	public @property Unit unit() {return v_unit;}  /// Zwraca jednostkę na tym polu
-	public @property Unit unit(Unit unit) {return v_unit = unit;}  // Ustawia jednostkę na tym polu
+	public @property Unit unit(Unit unit)  /// Ustawia jednostkę na tym polu
+	{
+		if(unit is null && v_unit !is null)
+		{
+			v_unit.x = -1;
+			v_unit.y = -1;
+		}
+		else
+		{
+			unit.y = y;
+			unit.x = x;
+		}
+		return v_unit = unit;
+	}
 }

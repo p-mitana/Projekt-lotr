@@ -11,9 +11,9 @@ import std.conv;
 import std.stdio;
 
 /**
- * Klasa reprezentuje testowego gracza.
+ * Klasa reprezentuje gracza komputerowego.
  */
-class TestPlayer : Player
+class AIPlayer : Player
 {
 	/**
 	 * Konstruktor gracza.
@@ -34,14 +34,7 @@ class TestPlayer : Player
 	 */
 	public override void doYourTurn(Board board, Unit unit)
 	{
-		if(name == "Gracz 1")
-		{
-			if(board[4][8].unit !is null)
-				unit.shoot(board, board[4][8].unit);
-		}
-		else
-		{
-		}
+		
 	}
 }
 

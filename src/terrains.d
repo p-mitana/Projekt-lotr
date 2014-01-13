@@ -4,6 +4,9 @@
  */
 module terrains;
 
+import units;
+
+import std.array;
 import std.conv;
 import std.xml;
 import std.file;
@@ -31,6 +34,78 @@ class Terrain
 	{
 		v_name = name;
 		v_imagePath = imagePath;
+	}
+	
+	/**
+	 * Konstruktor kopiujący.
+	 * 
+	 * Params:
+	 * Terrain t = teren do skopiowania;
+	 */
+	public this(Terrain t)
+	{
+		v_name = t.name;
+		v_imagePath = t.imagePath;
+		
+		foreach(string key, int value; t.params)
+		{
+			params[key] = value;
+		}
+		
+		modifiers = t.modifiers;  // Modyfikatorów w sumie nie musimy kopiować
+	}
+	
+	/**
+	 * Oblicza wartość parametru uwzględniając modyfikatory.
+	 * 
+	 * Params:
+	 * unit = Jednostka
+	 * paramName = Nazwa parametru
+	 * Returns:
+	 * Parametr zmodyfikowany przez teren
+	 */
+	public int getParamValue(Unit unit, string paramName)
+	{
+		int paramVal = unit.params[paramName];
+		
+		foreach(TerrainModifier modifier; modifiers)
+		{
+			if(modifier.param == paramName && modifier.when == "")
+			{
+				string mod = modifier.modification[0..$];  // Skopiuj tablicę
+				foreach(string key; params.keys)
+				{
+					mod = mod.replace("{" ~ key ~ "}", to!(string)(params[key]));
+				}
+				
+				switch(mod[0])
+				{
+					case '+':
+					{
+						paramVal = paramVal + to!(int)(mod[1..$]);
+						break;
+					}
+					case '-':
+					{
+						paramVal = paramVal - to!(int)(mod[1..$]);
+						break;
+					}
+					case '*':
+					{
+						paramVal = cast(int) (cast(double) paramVal * to!(double)(mod[1..$]));
+						break;
+					}
+					case '/':
+					{
+						paramVal = cast(int) (cast(double) paramVal / to!(double)(mod[1..$]));
+						break;
+					}
+					default: {}
+				}
+			}
+		}
+		
+		return paramVal;
 	}
 	
 	// Funkcje własności

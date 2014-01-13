@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<unit name="Elf Kapitan" race="Orkowie" img="img/units/elf_captain.png">
+<unit name="Elf kapitan" race="Orkowie" img="img/units/elf_captain.png">
 
 <!-- Parametry główne -->
 	<param name="fight_melee" value="6"/>

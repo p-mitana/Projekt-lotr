@@ -28,6 +28,8 @@ string[string] unitConfig;
 class Unit
 {
 	private string v_name;  /// Nazwa jednostki
+	private int v_x = -1;  /// X
+	private int v_y = -1;  /// Y
 	private string v_race;  /// Rasa
 	private string v_imagePath;  /// Ścieżka do obrazka
 	private Player v_owner;  /// Właściciel
@@ -75,16 +77,13 @@ class Unit
 	 */
 	public bool move(Board board, int y, int x)
 	{
-		int currY = -1;
-		int currX = -1;
-		board.getUnitPosition(this, currY, currX);
 		
 		// Sprawdzamy, czy jednostka w ogóle musi się ruszać
-		if(currY == y && currX == x)
+		if(this.y == y && this.x == x)
 			return true;  // true, bo w sumie jednostka ląduje tam, gdzie chce
 		
 		// Sprawdzamy, czy jednostka ma dość ruchu
-		if(board.distance(currY, currX, y, x) > params["movement"])  // Za daleko
+		if(board.distance(this.y, this.x, y, x) > board[this.y][this.x].terrain.getParamValue(this, "movement"))  // Za daleko
 			return false;
 		
 		// Sprawdzamy, czy pole istnieje i czy jest zajęte
@@ -96,11 +95,11 @@ class Unit
 		
 		// Wykonujemy ruch
 		board[y][x].unit = this;
-		board[currY][currX].unit = null;
+		board[this.y][this.x].unit = null;
 		
 		// Zaznaczamy pola do aktualizacji
 		board.changed[y][x] = true;
-		board.changed[currY][currX] = true;
+		board.changed[this.y][this.x] = true;
 		
 		log ~= format(`<p><span style="color: %s"><b>%s (#%d)</b></span> idzie na pole (%d, %d)</p>`, owner.color1, name, index, y, x);
 		
@@ -118,12 +117,8 @@ class Unit
 	 */
 	public bool moveRel(Board board, int y, int x)
 	{
-		int currY = -1;
-		int currX = -1;
 		
-		board.getUnitPosition(this, currY, currX);
-		
-		return move(board, currY + y, currX + x);
+		return move(board, this.y + y, this.x + x);
 	}
 	
 	/**
@@ -135,20 +130,15 @@ class Unit
 	public void attack(Board board, Unit target)
 	{
 		// Sprawdzenie, czy możemy atakować i wykonanie ataku
-		int myY, myX;
-		board.getUnitPosition(this, myY, myX);
-		
-		int targetY, targetX;
-		board.getUnitPosition(target, targetY, targetX);
 		
 		// Współrzędne najbliższego wolnego pola i odległość
 		double minDist = double.infinity;
 		int attackY, attackX;
 		
 		// Wyznacz najbliższe pole, z którego możesz zaatakować, sąsiadująće z celem
-		for(int y = targetY-1; y <= targetY+1; y++)
+		for(int y = target.y-1; y <= target.y+1; y++)
 		{
-			for(int x = targetX-1; x <= targetX+1; x++)
+			for(int x = target.x-1; x <= target.x+1; x++)
 			{
 				if(board[y][x].unit !is null && board[y][x].unit != this)  // Pomiń zajęte pola
 					continue;
@@ -156,7 +146,7 @@ class Unit
 				else
 				{
 					// Wyznacz odległość pola od jednotki
-					double dist = board.distance(myY, myX, y, x);
+					double dist = board.distance(this.y, this.x, y, x);
 					
 					if(dist < minDist)
 					{
@@ -199,13 +189,7 @@ class Unit
 		}
 		
 		// Sprawdzenie zasięgu
-		int myY, myX;
-		board.getUnitPosition(this, myY, myX);
-		
-		int targetY, targetX;
-		board.getUnitPosition(target, targetY, targetX);
-		
-		if(board.distance(myY, myX, targetY, targetX) > params["range"])  // Cel jest za daleko
+		if(board.distance(this.y, this.x, target.y, target.x) > board[this.y][this.x].terrain.getParamValue(this, "range"))  // Cel jest za daleko
 			return;
 		
 		// Strzał
@@ -227,6 +211,9 @@ class Unit
 	 */
 	private void fight(Board board, Unit target, bool distance = false)
 	{
+		// Sprawdzenie zasięgu
+		int distanceDodge = board[target.y][target.x].terrain.getParamValue(target, "distanceDodge");
+		
 		// Określenie parametrów
 		string strengthParam = distance ? "bow_strength" : "strength";
 		
@@ -235,11 +222,14 @@ class Unit
 		
 		if(distance)  // Po prostu sprawdzamy, czy trafi
 		{
-			if(rollK6() < params["fight_shoot"])  // Pudło
+			for(int i = 0; i < distanceDodge; i++)
 			{
-				log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> nie trafia.<br/>`,
-						owner.color1, name, index);
-				return;
+				if(rollK6() < params["fight_shoot"])  // Pudło
+				{
+					log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> nie trafia.<br/>`,
+							owner.color1, name, index);
+					return;
+				}
 			}
 			
 			attacker = this;
@@ -338,10 +328,9 @@ class Unit
 			log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> nie żyje.<br/>`, 
 					owner.color1, name, index);
 			
-			int y, x;
-			board.getUnitPosition(this, y, x);
-			board[y][x].unit = null;
-			board.changed[y][x] = true;
+			
+			board[this.y][this.x].unit = null;
+			board.changed[this.y][this.x] = true;
 		}
 		
 		return !isAlive();
@@ -352,6 +341,12 @@ class Unit
 	
 	public @property string name() {return v_name;}  /// Zwraca nazwę jednostki
 	public @property string name(string name) {return v_name = name;}  /// Ustawia nazwę jednostki
+	
+	public @property int x() { return v_x;}  /// Zwraca x jednostki
+	public @property int x(int x) {return v_x = x;}  /// Ustawia x jednostki
+	
+	public @property int y() { return v_y;}  /// Zwraca y jednostki
+	public @property int y(int y) {return v_y = y;}  /// Ustawia y jednostki
 	
 	public @property string race() { return v_race;}  /// Zwraca rasę jednostki
 	public @property string race(string race) {return v_race = race;}  /// Zwraca rasę jednostki

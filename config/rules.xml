@@ -6,6 +6,8 @@
 		</terrain>
 
 		<terrain name="forest" img="img/terrains/forest.png">
+			<modifier param="movement">*0.5</modifier>
+			<modifier param="distanceDodge">+1</modifier>
 		</terrain>
 
 		<terrain name="hill" img="img/terrains/hill.png">
@@ -20,6 +22,7 @@
 		</terrain>
 		
 		<terrain name="ruins" img="img/terrains/ruins.png">
+			<modifier param="distanceDodge">+1</modifier>
 		</terrain>
 	</terrains>
 </rules>

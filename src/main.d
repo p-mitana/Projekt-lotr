@@ -11,14 +11,17 @@ import units;
 import ui;
 
 import core.thread;
+import core.time;
 
 import std.array;
+import std.datetime;
 import std.file;
 import std.path;
+import std.random;
 import std.stdio;
 import std.string;
 	
-static string log;  /// Kod HTML loga
+static shared(string) log;  /// Kod HTML loga
 
 /**
  * Główna klasa programu - zawiera wszystkie ważne obiekty, łączy wszystkie moduły.
@@ -36,6 +39,15 @@ class Main : UICallback
 	Thread simulator;  /// Wątek odpowiedzialny za wykonywanie obliczeń
 	synchronized bool interrupt;  /// Należy ustawić, żeby przerwać symulację
 	
+	// Parametry symulacji
+	int boardWidth = 70;  /// Szerokość planszy
+	int boardHeight = 50;  /// Wysokość planszy
+	int swordCount = 30;  /// Ilość szermierzy
+	int bowCount = 15;  /// Ilość łuczników
+	int shieldCount = 20;  /// Ilość tarczowników
+	int heroCount = 2;  /// Ilość bohaterów
+	Terrain[9] sectorTerrains;  /// Tereny w sektorach
+	
 	/**
 	 * Wczytuje konfigurację programu, tworzy wymagane obiekty oraz GUI (umieszczone
 	 * w oddzielnym module napisanym w C++/QML).
@@ -52,48 +64,161 @@ class Main : UICallback
 		// Utworzenie interfejsu
 		ui = new UIController(this);
 		
-		// ==============================================================================
-		/* Ten kod tworzy jakąś domyślną symulację. Bardzo możliwe, że zostanie on
-		 * zamieniony na wczytywanie parametrów symulacji z pliku, konsoli lub jakiegoś
-		 * formularza w UI.
-		 */
-		board = new Board(70, 50, terrains["grass"]);
-		ui.board = board;
-		
-		players ~= new TestPlayer("Gracz 1", "#ff0000", "#800000");
-		players ~= new TestPlayer("Gracz 2", "#0000ff", "#000080");
-		
-
-		players[0].addUnit(new Unit("Elrond"));
-		board[3][5].unit = players[0].getUnit(-1);
-		board.changed[3][5] = true;
-		players[0].addUnit(new Unit("Elf łucznik"));
-		board[4][5].unit = players[0].getUnit(-1);
-		board.changed[4][5] = true;
-		players[0].addUnit(new Unit("Elf łucznik"));
-		board[5][5].unit = players[0].getUnit(-1);
-		board.changed[5][5] = true;
-		players[0].addUnit(new Unit("Elf łucznik"));
-		board[6][5].unit = players[0].getUnit(-1);
-		board.changed[6][5] = true;
-		players[0].addUnit(new Unit("Legolas"));
-		board[7][5].unit = players[0].getUnit(-1);
-		board.changed[7][5] = true;
-		
-		players[1].addUnit(new Unit("Gothmog"));
-		board[4][8].unit = players[1].getUnit(-1);
-		board.changed[4][8] = true;
-		
-		ui.updateBoard();
-		
-		// ==============================================================================
+		// Utworzenie symmulacji
+		initSimulation();
 		
 		// Uruchomienie interfejsu
 		ui.run();
 	}
 	
-	
 	/* ---------- METODY ZWIĄZANE Z PZEPROWADZANIEM SYMULACJI I JEJ WĄTKIEM ---------- */
+	
+	/**
+	 * Inicjalizuje/resetuje symulację
+	 * 
+	 * Params:
+	 * resetBoard = Czy resetujemy planszę?
+	 */
+	void initSimulation(bool resetBoard = true)
+	{
+		// Przerwanie symulacji
+		interrupt = true;
+		
+		while(simulator.isRunning())
+		{
+			Thread.getThis().sleep(dur!("msecs")(10));
+		}
+		
+		
+		if(resetBoard)
+		{
+			// Losowanie terenów  (50% szans na trawę, 50% szans na inny teren)
+			string[] terrainNames = terrains.keys;
+			
+			for(int i = 0; i < 9; i++)
+			{
+				ulong rand = uniform!("[]")(0, 2*terrains.length-2);
+				
+				if(rand < terrains.length)
+				{
+					sectorTerrains[i] = new Terrain(terrains[terrainNames[rand]]);
+					
+					if(sectorTerrains[i].name == "hill")
+					{
+						sectorTerrains[i].params["height"] = uniform!("[]")(1, 5);
+					}
+				}
+			}
+			
+			// Tworzymy planszę
+			board = new Board(boardWidth, boardHeight, terrains["grass"], sectorTerrains);
+			ui.board = board;
+		}
+		
+		else  // Czyścimy jednostki, jeżeli nie resetujemy planszy
+		{
+			foreach(int i, Field[] row; board.fields)
+			{
+				foreach(int j, Field field; row)
+				{
+					if(field.unit !is null)
+					{
+						field.unit = null;
+						board.changed[i][j] = true;
+					}
+				}
+			}
+		}
+		
+		// Tworzymy graczy
+		players.length = 0;
+		players ~= new AIPlayer("Gracz 1", "#ff0000", "#800000");
+		players ~= new AIPlayer("Gracz 2", "#0000ff", "#000080");
+		
+		int offset = 1;
+		
+		// Ustawiamy łuczników
+		for(int i = 0; i < bowCount; i++)
+		{
+			players[0].addUnit(new Unit("Elf łucznik"));
+			board[board.height/2 - 5 + i%10][offset+i/10].unit = players[0].getUnit(-1);
+			board.changed[board.height/2 - 5 + i%10][offset+i/10] = true;
+			
+			players[1].addUnit(new Unit("Ork łucznik"));
+			board[board.height/2 - 5 + i%10][board.width-offset-1-i/10].unit = players[1].getUnit(-1);
+			board.changed[board.height/2 - 5 + i%10][board.width-offset-1-i/10] = true;
+		}
+		
+		offset += bowCount/10 + 2;
+		
+		// Ustawiamy bohaterów
+		if(heroCount == 1)
+		{
+			players[0].addUnit(new Unit("Legolas"));
+			board[board.height/2][offset].unit = players[0].getUnit(-1);
+			board.changed[board.height/2][offset] = true;
+			
+			players[1].addUnit(new Unit("Gothmog"));
+			board[board.height/2][board.width-offset-1].unit = players[1].getUnit(-1);
+			board.changed[board.height/2][board.width-offset-1] = true;
+		}
+		else if(heroCount == 2)
+		{
+			players[0].addUnit(new Unit("Legolas"));
+			board[board.height/2-3][offset].unit = players[0].getUnit(-1);
+			board.changed[board.height/2-3][offset] = true;
+			
+			players[0].addUnit(new Unit("Elrond"));
+			board[board.height/2+3][offset].unit = players[0].getUnit(-1);
+			board.changed[board.height/2+3][offset] = true;
+			
+			players[1].addUnit(new Unit("Gothmog"));
+			board[board.height/2-3][board.width-offset-1].unit = players[1].getUnit(-1);
+			board.changed[board.height/2-3][board.width-offset-1] = true;
+			
+			players[1].addUnit(new Unit("Usta Saurona"));
+			board[board.height/2+3][board.width-offset-1].unit = players[1].getUnit(-1);
+			board.changed[board.height/2+3][board.width-offset-1] = true;
+		}
+		
+		offset += 3;
+		
+		// Ustawiamy mieczników
+		for(int i = 0; i < swordCount; i++)
+		{
+			players[0].addUnit(new Unit("Elf miecznik"));
+			board[board.height/2 - 5 + i%10][offset+i/10].unit = players[0].getUnit(-1);
+			board.changed[board.height/2 - 5 + i%10][offset+i/10] = true;
+			
+			players[1].addUnit(new Unit("Ork miecznik"));
+			board[board.height/2 - 5 + i%10][board.width-offset-1-i/10].unit = players[1].getUnit(-1);
+			board.changed[board.height/2 - 5 + i%10][board.width-offset-1-i/10] = true;
+		}
+		
+		offset += swordCount/10 + 2;
+		
+		// Ustawiamy tarczowników
+		for(int i = 0; i < shieldCount; i++)
+		{
+			players[0].addUnit(new Unit("Elf tarczownik"));
+			board[board.height/2 - 5 + i%10][offset+i/10].unit = players[0].getUnit(-1);
+			board.changed[board.height/2 - 5 + i%10][offset+i/10] = true;
+			
+			players[1].addUnit(new Unit("Ork tarczownik"));
+			board[board.height/2 - 5 + i%10][board.width-offset-1-i/10].unit = players[1].getUnit(-1);
+			board.changed[board.height/2 - 5 + i%10][board.width-offset-1-i/10] = true;
+		}
+		
+		// Czyścimy log i licznik tur
+		log = "";
+		turnCount = 0;
+		
+		// Aktualizujemy interfejs
+		ui.updateBoard();
+		ui.turnCompleted(turnCount);
+		ui.log(log);
+	}
+
 	
 	/**
 	 * Wykonuje jedną kolejkę symulacji.
@@ -216,6 +341,28 @@ class Main : UICallback
 		{
 			ui.battleOver(winner.name);
 		}
+	}
+	
+	/**
+	 * Resetuje symulację.
+	 */
+	extern(C++) void simulationReset()
+	{
+		initSimulation(false);  // Bez resetowania planszy
+	}
+	
+	/**
+	 * Zapisuje loga.
+	 */
+	extern(C++) void saveLog()
+	{
+		string toSave = `<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+				<style type="text/css">* {font-family: Ubuntu Mono;}</style><head><body>` ~ log ~ `</body></html>`;
+		
+		auto time = Clock.currTime();
+		time.fracSec = FracSec.zero();
+		string filename = time.toSimpleString();
+		std.file.write("log/" ~ filename ~ ".html", toSave);
 	}
 }
 

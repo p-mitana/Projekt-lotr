@@ -23,6 +23,8 @@ UI::UI(UICallback *callback)
 	connect(rootObject(), SIGNAL(start()), this, SLOT(simulationStart()));
 	connect(rootObject(), SIGNAL(stop()), this, SLOT(simulationStop()));
 	connect(rootObject(), SIGNAL(step()), this, SLOT(simulationStep()));
+	connect(rootObject(), SIGNAL(reset()), this, SLOT(simulationReset()));
+	connect(rootObject(), SIGNAL(saveLog()), this, SLOT(saveLog()));
 	
 	show();
 }
@@ -49,6 +51,22 @@ void UI::simulationStop()
 void UI::simulationStep()
 {
 	callback->simulationStep();
+}
+
+/**
+ * Resetuje symulację.
+ */
+void UI::simulationReset()
+{
+	callback->simulationReset();
+}
+
+/**
+ * Zapisujemy loga.
+ */
+void UI::saveLog()
+{
+	callback->saveLog();
 }
 
 /**
