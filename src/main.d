@@ -48,10 +48,10 @@ class Main : UICallback
 	int eSwordCount = 15;  /// Elfowie - Ilość szermierzy
 	int eBowCount = 12;  /// Elfowie - Ilość łuczników
 	int eShieldCount = 15;  /// Elfowie - Ilość tarczowników
-	int eHeroCount = 1;  /// Elfowie - Ilość bohaterów
-	int oSwordCount = 18;  /// Orkowie - Ilość szermierzy
-	int oBowCount = 17;  /// Orkowie - Ilość łuczników
-	int oShieldCount = 18;  /// IOrkowie - lość tarczowników
+	int eHeroCount = 2;  /// Elfowie - Ilość bohaterów
+	int oSwordCount = 25;  /// Orkowie - Ilość szermierzy
+	int oBowCount = 22;  /// Orkowie - Ilość łuczników
+	int oShieldCount = 25;  /// IOrkowie - lość tarczowników
 	int oHeroCount = 2;  /// Orkowie - Ilość bohaterów
 	Terrain[9] sectorTerrains;  /// Tereny w sektorach
 	
@@ -173,14 +173,7 @@ class Main : UICallback
 			board.changed[board.height/2][offset] = true;
 		}
 		
-		else if(oHeroCount == 1)
-		{
-			players[1].addUnit(new Unit("Gothmog"));
-			board[board.height/2][board.width-offset-1].unit = players[1].getUnit(-1);
-			board.changed[board.height/2][board.width-offset-1] = true;
-		}
-		
-		if(eHeroCount == 2)
+		else if(eHeroCount == 2)
 		{
 			players[0].addUnit(new Unit("Elrond"));
 			board[board.height/2-3][offset].unit = players[0].getUnit(-1);
@@ -189,6 +182,13 @@ class Main : UICallback
 			players[0].addUnit(new Unit("Legolas"));
 			board[board.height/2+3][offset].unit = players[0].getUnit(-1);
 			board.changed[board.height/2+3][offset] = true;
+		}
+		
+		if(oHeroCount == 1)
+		{
+			players[1].addUnit(new Unit("Gothmog"));
+			board[board.height/2][board.width-offset-1].unit = players[1].getUnit(-1);
+			board.changed[board.height/2][board.width-offset-1] = true;
 		}
 		
 		else if(oHeroCount == 2)
