@@ -56,32 +56,6 @@ class Board
 		}
 	}
 	
-/+	/**
-	 * Zwraca do parametrów pozycję jednostki na planszy
-	 * Params:
-	 * Unit = jednostka
-	 * y = tam zostanie zapisania współrzędna Y
-	 * x = tam zostanie zapisania współrzędna X
-	*/
-	void getUnitPosition(Unit unit, out int y, out int x)
-	{
-		y = -1;
-		x = -1;
-		
-		foreach(int i, Field[] row; fields)
-		{
-			foreach(int j, Field field; row)
-			{
-				if(unit is field.unit)
-				{
-					y = i;
-					x = j;
-					return;
-				}
-			}
-		}
-	}
-+/	
 	/**
 	 * Zwraca odległość między punktami
 	 * Params:
@@ -89,17 +63,12 @@ class Board
 	 * y2 = Współrzędna Y punktu 2
 	 * x1 = Współrzędna X punktu 1
 	 * x2 = Współrzędna X punktu 2
-	 * straight = czy mierzymy w linii prostej
 	 * Returns:
 	 * Odległość między polami
 	 */
-	double distance(int y1, int x1, int y2, int x2, bool straight = true)  // TODO: Zmienić straight na false
+	double distance(int y1, int x1, int y2, int x2)
 	{
-		if(straight)
-			return sqrt(pow(abs(y1-y2), 2.0) + pow(abs(x1-x2), 2.0));
-		
-		else
-			return -1.0;
+		return sqrt(pow(abs(y1-y2), 2.0) + pow(abs(x1-x2), 2.0));
 	}
 	
 	/**

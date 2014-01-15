@@ -33,7 +33,10 @@ class Unit
 	private string v_race;  /// Rasa
 	private string v_imagePath;  /// Ścieżka do obrazka
 	private Player v_owner;  /// Właściciel
+	private bool v_isHero = false;  /// Czy jest to bohater
 	private int v_index;  /// Indeks - unikalny dla gracza
+	private bool v_canShoot;  /// Czy może strzelać (aktywne, jeżeli nie przeszła powyżej połowy ruchu)
+	private bool v_canFight;  /// Czy już walczył w tej turze
 	int[string] params;  /// Parametry
 	string[] abilities;  /// Zdolności specjalne
 	
@@ -50,6 +53,7 @@ class Unit
 		v_name = parser.tag.attr["name"];
 		v_race = parser.tag.attr["race"];
 		v_imagePath = parser.tag.attr["img"];
+		v_isHero = parser.tag.attr.get("hero", "false") == "true";
 	
 		parser.onEndTag["param"] = (const Element e)
 		{
@@ -77,7 +81,6 @@ class Unit
 	 */
 	public bool move(Board board, int y, int x)
 	{
-		
 		// Sprawdzamy, czy jednostka w ogóle musi się ruszać
 		if(this.y == y && this.x == x)
 			return true;  // true, bo w sumie jednostka ląduje tam, gdzie chce
@@ -86,6 +89,9 @@ class Unit
 		if(board.distance(this.y, this.x, y, x) > board[this.y][this.x].terrain.getParamValue(this, "movement"))  // Za daleko
 			return false;
 		
+		// Sprawdzamy, czy po tym ruchu jednostka będzie mogła strzelać
+		canShoot = board.distance(this.y, this.x, y, x) > board[this.y][this.x].terrain.getParamValue(this, "movement")/2;
+		
 		// Sprawdzamy, czy pole istnieje i czy jest zajęte
 		if(y < 0 || y >= board.fields.length || x < 0 || x >= board.fields[0].length)
 			return false;
@@ -93,15 +99,15 @@ class Unit
 		if(board[y][x].unit !is null)
 			return false;
 		
-		// Wykonujemy ruch
-		board[y][x].unit = this;
-		board[this.y][this.x].unit = null;
-		
 		// Zaznaczamy pola do aktualizacji
-		board.changed[y][x] = true;
 		board.changed[this.y][this.x] = true;
+		board.changed[y][x] = true;
 		
-		log ~= format(`<p><span style="color: %s"><b>%s (#%d)</b></span> idzie na pole (%d, %d)</p>`, owner.color1, name, index, y, x);
+		// Wykonujemy ruch
+		board[this.y][this.x].unit = null;
+		board[y][x].unit = this;
+		
+//		log ~= format(`<p><span style="color: %s"><b>%s (#%d)</b></span> idzie na pole (%d, %d)</p>`, owner.color1, name, index, y, x);
 		
 		return true;
 	}
@@ -129,40 +135,12 @@ class Unit
 	 */
 	public void attack(Board board, Unit target)
 	{
-		// Sprawdzenie, czy możemy atakować i wykonanie ataku
-		
-		// Współrzędne najbliższego wolnego pola i odległość
-		double minDist = double.infinity;
-		int attackY, attackX;
-		
-		// Wyznacz najbliższe pole, z którego możesz zaatakować, sąsiadująće z celem
-		for(int y = target.y-1; y <= target.y+1; y++)
-		{
-			for(int x = target.x-1; x <= target.x+1; x++)
-			{
-				if(board[y][x].unit !is null && board[y][x].unit != this)  // Pomiń zajęte pola
-					continue;
-				
-				else
-				{
-					// Wyznacz odległość pola od jednotki
-					double dist = board.distance(this.y, this.x, y, x);
-					
-					if(dist < minDist)
-					{
-						minDist = dist;
-						attackY = y;
-						attackX = x;
-					}
-				}
-			}
-		}
-		
-		if(minDist == double.infinity)  // Nie można dojść
+		// Sprawdzenie zasięgu
+		if(board.distance(this.y, this.x, target.y, target.x) >= 2.0)  // Cel jest za daleko
 			return;
 		
-		if(!move(board, attackY, attackX))  // Za daleko
-			return;
+		canFight = false;
+		target.canFight = false;
 		
 		// Atak
 		log ~= format(`<p><span style="color: %s;"><b>%s (#%d)</b></span> rozpoczyna walkę z 
@@ -196,6 +174,8 @@ class Unit
 		log ~= format(`<p><span style="color: %s;"><b>%s (#%d)</b></span> strzela do
 				<span style="color: %s;"><b>%s (#%d)</b></span>.<br/>`,
 				owner.color1, name, index, target.owner.color1, target.name, target.index);
+		
+		canFight = false;
 		
 		fight(board, target, true);
 		
@@ -237,6 +217,9 @@ class Unit
 		}
 		else  // Musimy ustalić, kto atakuje, a kto się broni
 		{
+			canFight = false;
+			target.canFight = false;
+			
 			while(attacker is null)
 			{
 				// Rzuty kostką
@@ -309,6 +292,32 @@ class Unit
 	}
 	
 	/**
+	 * Sprawdzenie, czy jednostka jest bohaterem
+	 * Returns:
+	 * true, jeżeli jenostka jest bohaterem
+	 */
+	public bool isHero()
+	{
+		return v_isHero;
+	}
+	
+	/**
+	 * Metoda obsługująca ucieczkę jednostki.
+	 * Params:
+	 * board = Plansza
+	 */
+	public void runAway(Board board)
+	{
+		log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> ucieka z pola bitwy.<br/>`, 
+				owner.color1, name, index);
+		
+		board.changed[this.y][this.x] = true;
+		board[this.y][this.x].unit = null;
+		
+		owner.removeUnit(this);
+	}
+	
+	/**
 	 * Metoda obsługująca zranienie jednostki
 	 * Params:
 	 * board = Plansza
@@ -319,7 +328,7 @@ class Unit
 	{
 		log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> otrzymuje obrażenia.<br/>`, 
 				owner.color1, name, index);
-						
+		
 		params["wounds"]--;
 		
 		// Usuń jednostkę, jeżeli nie żyje.
@@ -328,9 +337,10 @@ class Unit
 			log ~= format(`<span style="color: %s;"><b>%s (#%d)</b></span> nie żyje.<br/>`, 
 					owner.color1, name, index);
 			
-			
-			board[this.y][this.x].unit = null;
 			board.changed[this.y][this.x] = true;
+			board[this.y][this.x].unit = null;
+			
+			owner.removeUnit(this);
 		}
 		
 		return !isAlive();
@@ -359,6 +369,12 @@ class Unit
 	
 	public @property int index() { return v_index;}  /// Zwraca indeks jednostki
 	public @property int index(int index) {return v_index = index;}  /// Ustawia indeks jednostki
+	
+	public @property bool canShoot() { return v_canShoot;}  /// Zwraca, czy jednostka może strzelać
+	public @property bool canShoot(bool canShoot) {return v_canShoot = canShoot;}  /// Ustawia, czy jednostka może strzelać
+	
+	public @property bool canFight() { return v_canShoot;}  /// Zwraca, czy jednostka może walczyć
+	public @property bool canFight(bool canFight) {return v_canFight = canFight;}  /// Ustawia, czy jednostka może walczyć
 }
 
 /**

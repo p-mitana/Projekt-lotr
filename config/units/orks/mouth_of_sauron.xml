@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<unit name="Usta Saurona" race="Orkowie" img="img/units/mouth_sauron.png">
+<unit name="Usta Saurona" race="Orkowie" hero="true" img="img/units/mouth_sauron.png">
 
 <!-- Parametry główne -->
 	<param name="fight_melee" value="4"/>

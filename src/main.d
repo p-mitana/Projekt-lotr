@@ -9,6 +9,7 @@ import players;
 import terrains;
 import units;
 import ui;
+import utils;
 
 import core.thread;
 import core.time;
@@ -16,6 +17,7 @@ import core.time;
 import std.array;
 import std.datetime;
 import std.file;
+import std.math;
 import std.path;
 import std.random;
 import std.stdio;
@@ -29,12 +31,13 @@ static shared(string) log;  /// Kod HTML loga
 class Main : UICallback
 {
 	Terrain[string] terrains;  /// Tablica asocjacyjna terenów indeksowana nazwami.
-	Player[] players;  /// Tablica graczy
+	synchronized Player[] players;  /// Tablica graczy
 	synchronized Player winner = null;  /// Zwycięzca
 	synchronized Board board;  /// Plansza symulacji
 	synchronized UIController ui;  /// Kontroler interfejsu użytkownika
 	synchronized int turnCount = 0;  /// Licznik tur
 	synchronized int sleepTime = 250;  /// Czas między kolejkami
+	synchronized int startingIndex = 0;  /// Indeks rozpoczynającego gracza - domyślnie gracz 1
 	
 	Thread simulator;  /// Wątek odpowiedzialny za wykonywanie obliczeń
 	synchronized bool interrupt;  /// Należy ustawić, żeby przerwać symulację
@@ -42,10 +45,14 @@ class Main : UICallback
 	// Parametry symulacji
 	int boardWidth = 70;  /// Szerokość planszy
 	int boardHeight = 50;  /// Wysokość planszy
-	int swordCount = 30;  /// Ilość szermierzy
-	int bowCount = 15;  /// Ilość łuczników
-	int shieldCount = 20;  /// Ilość tarczowników
-	int heroCount = 2;  /// Ilość bohaterów
+	int eSwordCount = 15;  /// Elfowie - Ilość szermierzy
+	int eBowCount = 12;  /// Elfowie - Ilość łuczników
+	int eShieldCount = 15;  /// Elfowie - Ilość tarczowników
+	int eHeroCount = 1;  /// Elfowie - Ilość bohaterów
+	int oSwordCount = 18;  /// Orkowie - Ilość szermierzy
+	int oBowCount = 17;  /// Orkowie - Ilość łuczników
+	int oShieldCount = 18;  /// IOrkowie - lość tarczowników
+	int oHeroCount = 2;  /// Orkowie - Ilość bohaterów
 	Terrain[9] sectorTerrains;  /// Tereny w sektorach
 	
 	/**
@@ -83,6 +90,7 @@ class Main : UICallback
 	{
 		// Przerwanie symulacji
 		interrupt = true;
+		winner = null;
 		
 		while(simulator.isRunning())
 		{
@@ -138,40 +146,53 @@ class Main : UICallback
 		int offset = 1;
 		
 		// Ustawiamy łuczników
-		for(int i = 0; i < bowCount; i++)
+		for(int i = 0; i < fmax(eBowCount, oBowCount); i++)
 		{
-			players[0].addUnit(new Unit("Elf łucznik"));
-			board[board.height/2 - 5 + i%10][offset+i/10].unit = players[0].getUnit(-1);
-			board.changed[board.height/2 - 5 + i%10][offset+i/10] = true;
+			if(i < eBowCount)
+			{
+				players[0].addUnit(new Unit("Elf łucznik"));
+				board[board.height/2 - 5 + i%10][offset+i/10].unit = players[0].getUnit(-1);
+				board.changed[board.height/2 - 5 + i%10][offset+i/10] = true;
+			}
 			
-			players[1].addUnit(new Unit("Ork łucznik"));
-			board[board.height/2 - 5 + i%10][board.width-offset-1-i/10].unit = players[1].getUnit(-1);
-			board.changed[board.height/2 - 5 + i%10][board.width-offset-1-i/10] = true;
+			if(i < oBowCount)
+			{
+				players[1].addUnit(new Unit("Ork łucznik"));
+				board[board.height/2 - 5 + i%10][board.width-offset-1-i/10].unit = players[1].getUnit(-1);
+				board.changed[board.height/2 - 5 + i%10][board.width-offset-1-i/10] = true;
+			}
 		}
 		
-		offset += bowCount/10 + 2;
+		offset += fmax(eBowCount, oBowCount)/10 + 2;
 		
 		// Ustawiamy bohaterów
-		if(heroCount == 1)
+		if(eHeroCount == 1)
 		{
-			players[0].addUnit(new Unit("Legolas"));
+			players[0].addUnit(new Unit("Elrond"));
 			board[board.height/2][offset].unit = players[0].getUnit(-1);
 			board.changed[board.height/2][offset] = true;
-			
+		}
+		
+		else if(oHeroCount == 1)
+		{
 			players[1].addUnit(new Unit("Gothmog"));
 			board[board.height/2][board.width-offset-1].unit = players[1].getUnit(-1);
 			board.changed[board.height/2][board.width-offset-1] = true;
 		}
-		else if(heroCount == 2)
+		
+		if(eHeroCount == 2)
 		{
-			players[0].addUnit(new Unit("Legolas"));
+			players[0].addUnit(new Unit("Elrond"));
 			board[board.height/2-3][offset].unit = players[0].getUnit(-1);
 			board.changed[board.height/2-3][offset] = true;
 			
-			players[0].addUnit(new Unit("Elrond"));
+			players[0].addUnit(new Unit("Legolas"));
 			board[board.height/2+3][offset].unit = players[0].getUnit(-1);
 			board.changed[board.height/2+3][offset] = true;
-			
+		}
+		
+		else if(oHeroCount == 2)
+		{
 			players[1].addUnit(new Unit("Gothmog"));
 			board[board.height/2-3][board.width-offset-1].unit = players[1].getUnit(-1);
 			board.changed[board.height/2-3][board.width-offset-1] = true;
@@ -184,29 +205,41 @@ class Main : UICallback
 		offset += 3;
 		
 		// Ustawiamy mieczników
-		for(int i = 0; i < swordCount; i++)
+		for(int i = 0; i < fmax(eSwordCount, oSwordCount); i++)
 		{
-			players[0].addUnit(new Unit("Elf miecznik"));
-			board[board.height/2 - 5 + i%10][offset+i/10].unit = players[0].getUnit(-1);
-			board.changed[board.height/2 - 5 + i%10][offset+i/10] = true;
+			if(i < eSwordCount)
+			{
+				players[0].addUnit(new Unit("Elf miecznik"));
+				board[board.height/2 - 5 + i%10][offset+i/10].unit = players[0].getUnit(-1);
+				board.changed[board.height/2 - 5 + i%10][offset+i/10] = true;
+			}
 			
-			players[1].addUnit(new Unit("Ork miecznik"));
-			board[board.height/2 - 5 + i%10][board.width-offset-1-i/10].unit = players[1].getUnit(-1);
-			board.changed[board.height/2 - 5 + i%10][board.width-offset-1-i/10] = true;
+			if(i < oSwordCount)
+			{
+				players[1].addUnit(new Unit("Ork miecznik"));
+				board[board.height/2 - 5 + i%10][board.width-offset-1-i/10].unit = players[1].getUnit(-1);
+				board.changed[board.height/2 - 5 + i%10][board.width-offset-1-i/10] = true;
+			}
 		}
 		
-		offset += swordCount/10 + 2;
+		offset += fmax(eSwordCount, oSwordCount)/10 + 2;
 		
 		// Ustawiamy tarczowników
-		for(int i = 0; i < shieldCount; i++)
+		for(int i = 0; i < fmax(eShieldCount, oShieldCount); i++)
 		{
-			players[0].addUnit(new Unit("Elf tarczownik"));
-			board[board.height/2 - 5 + i%10][offset+i/10].unit = players[0].getUnit(-1);
-			board.changed[board.height/2 - 5 + i%10][offset+i/10] = true;
+			if(i < eShieldCount)
+			{
+				players[0].addUnit(new Unit("Elf tarczownik"));
+				board[board.height/2 - 5 + i%10][offset+i/10].unit = players[0].getUnit(-1);
+				board.changed[board.height/2 - 5 + i%10][offset+i/10] = true;
+			}
 			
-			players[1].addUnit(new Unit("Ork tarczownik"));
-			board[board.height/2 - 5 + i%10][board.width-offset-1-i/10].unit = players[1].getUnit(-1);
-			board.changed[board.height/2 - 5 + i%10][board.width-offset-1-i/10] = true;
+			if(i < oShieldCount)
+			{
+				players[1].addUnit(new Unit("Ork tarczownik"));
+				board[board.height/2 - 5 + i%10][board.width-offset-1-i/10].unit = players[1].getUnit(-1);
+				board.changed[board.height/2 - 5 + i%10][board.width-offset-1-i/10] = true;
+			}
 		}
 		
 		// Czyścimy log i licznik tur
@@ -229,35 +262,32 @@ class Main : UICallback
 		
 		log ~= format(`<div style="font-size: 24px;">Tura %d</div>`, turnCount);
 		
-		for(int i = 0; ; i++)  // Pętlę przerwę z wnętrza
+		// Określenie gracza zaczynającego
+		int player1roll = rollK6();
+		int player2roll = rollK6();
+		
+		if(player2roll > player1roll || (player2roll == player1roll && turnCount > 1))
 		{
-			bool unitProcessed = false;
-			
-			foreach(Player p; players)  // Iterujemy po graczach - jeżeli ma tyle jednostek, ruszają się
-			{
-				if(i < p.units.length)
-				{
-					if(!p.units[i].isAlive())  // Jednostka nie żyje, pomijamy ją
-						continue;
-					
-					p.doYourTurn(board, p.units[i]);
-					unitProcessed = true;
-				}
-			}
-			
-			if(!unitProcessed)  // Jeżeli żadna jednostka nie dostała ruchu w tej iteracji, koniec kolejki
-				break;
+			Player p = players[0];
+			players[0] = players[1];
+			players[1] = p;
 		}
 		
-		// Aktualizacja tablic jednostek
-		foreach(Player p; players)
+		// 4 fazy: ruch-strzał-walka-test odwagi
+		for(int i = 0; i <= 3; i++)
 		{
-			foreach_reverse(Unit u; p.units)
+			foreach(Player p; players)  // Iterujemy po graczach - jeżeli ma tyle jednostek, ruszają się
 			{
-				if(!u.isAlive())
+				if(i == 0)
 				{
-					p.removeUnit(u);
+					foreach(Unit u; p.units)
+					{
+						u.canFight = true;
+						u.canShoot = true;
+					}
 				}
+				
+				p.doYourTurn(board, players, i);
 			}
 		}
 		

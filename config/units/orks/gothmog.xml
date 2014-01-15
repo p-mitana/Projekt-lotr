@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<unit name="Gothmog" race="Orkowie" img="img/units/gothmog.png">
+<unit name="Gothmog" race="Orkowie" hero="true" img="img/units/gothmog.png">
 
 <!-- Parametry główne -->
 	<param name="fight_melee" value="5"/>
