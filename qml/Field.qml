@@ -32,5 +32,41 @@ UbuntuShape
 		
 		unit.color = color1;
 		unit.gradientColor = color2;
+		
+		unit.width = 3*width/4;
+		unit.height = 3*height/4;
+	}
+	
+	function zoomIn()
+	{
+		width += units.gu(1);
+		height += units.gu(1);
+		
+		for(var i = children.length; i>0; i--)
+		{
+			if(children[i-1].objectName == objectName + "_unit")
+			{
+				children[i-1].width = 3*width/4;
+				children[i-1].height = 3*height/4;
+			}
+		}
+	}
+	
+	function zoomOut()
+	{
+		if(width <= units.gu(2))
+			return;
+		
+		width -= units.gu(1);
+		height -= units.gu(1);
+		
+		for(var i = children.length; i>0; i--)
+		{
+			if(children[i-1].objectName == objectName + "_unit")
+			{
+				children[i-1].width = 3*width/4;
+				children[i-1].height = 3*height/4;
+			}
+		}
 	}
 }

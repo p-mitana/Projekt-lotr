@@ -52,6 +52,10 @@ class UI : public QQuickView
 	void simulationStep();  // Wykonuje jedną kolejkę symulacji
 	void simulationReset();  // Resetuje symulację
 	void saveLog();  // Zapisuje loga
+	void zoomIn();  // Powiększ
+	void zoomOut();  // Pomniejsz
+	void loadSettings();  // Wczytaj ustawienia
+	void saveSettings(QString params);  // Zapisz ustawienia
 };
 
 /**
@@ -65,6 +69,10 @@ class UICallback
 	virtual void simulationStep();  // Wykonuje jedną kolejkę symulacji
 	virtual void simulationReset();  // Resetuje
 	virtual void saveLog();  // Zapisujemy loga
+	virtual void zoomIn();  // Powiększ
+	virtual void zoomOut();  // Pomniejsz
+	virtual void loadSettings();  // Wczytaj ustawienia
+	virtual void saveSettings(char *params);  // Zapisz ustawienia
 };
 
 /**
@@ -85,6 +93,10 @@ class UILink
 	virtual void updateTurnCount(int turnCount);  // Aktualizuje licznik tur
 	virtual void showBattleOverDialog(char *winner);  // Pokazuje dialog końca bitwy
 	virtual void log(char* html);  // Aktualizuje loga
+	virtual void zoomIn(int y, int x);  // Powiększ
+	virtual void zoomOut(int y, int x);  // Pomniejsz
+	virtual void openSettings(char *params);  // Wczytaj ustawienia
+	virtual void closeSettings();  // Zamyka ustawienia
 };
 
 UILink *createUI(UICallback *callback);  // Metoda tworząca interfejs

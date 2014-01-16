@@ -15,6 +15,7 @@ import core.thread;
 import core.time;
 
 import std.array;
+import std.conv;
 import std.datetime;
 import std.file;
 import std.math;
@@ -49,11 +50,12 @@ class Main : UICallback
 	int eBowCount = 12;  /// Elfowie - Ilość łuczników
 	int eShieldCount = 15;  /// Elfowie - Ilość tarczowników
 	int eHeroCount = 2;  /// Elfowie - Ilość bohaterów
-	int oSwordCount = 25;  /// Orkowie - Ilość szermierzy
-	int oBowCount = 22;  /// Orkowie - Ilość łuczników
-	int oShieldCount = 25;  /// IOrkowie - lość tarczowników
+	int oSwordCount = 20;  /// Orkowie - Ilość szermierzy
+	int oBowCount = 18;  /// Orkowie - Ilość łuczników
+	int oShieldCount = 20;  /// IOrkowie - lość tarczowników
 	int oHeroCount = 2;  /// Orkowie - Ilość bohaterów
 	Terrain[9] sectorTerrains;  /// Tereny w sektorach
+	string[] terrainNames = ["grass", "forest", "swamp", "hill", "ruins"];  /// Nazwy terenów, które losujemy
 	
 	/**
 	 * Wczytuje konfigurację programu, tworzy wymagane obiekty oraz GUI (umieszczone
@@ -72,7 +74,7 @@ class Main : UICallback
 		ui = new UIController(this);
 		
 		// Utworzenie symmulacji
-		initSimulation();
+		initSimulation(true, true);
 		
 		// Uruchomienie interfejsu
 		ui.run();
@@ -85,8 +87,9 @@ class Main : UICallback
 	 * 
 	 * Params:
 	 * resetBoard = Czy resetujemy planszę?
+	 * randomTerrains = Czy generujemy nową listę terenów?
 	 */
-	void initSimulation(bool resetBoard = true)
+	void initSimulation(bool resetBoard, bool randomTerrains = false)
 	{
 		// Przerwanie symulacji
 		interrupt = true;
@@ -101,23 +104,24 @@ class Main : UICallback
 		if(resetBoard)
 		{
 			// Losowanie terenów  (50% szans na trawę, 50% szans na inny teren)
-			string[] terrainNames = terrains.keys;
 			
-			for(int i = 0; i < 9; i++)
+			if(randomTerrains)
 			{
-				ulong rand = uniform!("[]")(0, 2*terrains.length-2);
-				
-				if(rand < terrains.length)
+				for(int i = 0; i < 9; i++)
 				{
-					sectorTerrains[i] = new Terrain(terrains[terrainNames[rand]]);
+					ulong rand = uniform!("[]")(0, 2*terrains.length-2);
 					
-					if(sectorTerrains[i].name == "hill")
+					if(rand < terrains.length)
 					{
-						sectorTerrains[i].params["height"] = uniform!("[]")(1, 5);
+						sectorTerrains[i] = new Terrain(terrains[terrainNames[rand]]);
+						
+						if(sectorTerrains[i].name == "hill")
+						{
+							sectorTerrains[i].params["height"] = uniform!("[]")(1, 5);
+						}
 					}
 				}
 			}
-			
 			// Tworzymy planszę
 			board = new Board(boardWidth, boardHeight, terrains["grass"], sectorTerrains);
 			ui.board = board;
@@ -140,8 +144,8 @@ class Main : UICallback
 		
 		// Tworzymy graczy
 		players.length = 0;
-		players ~= new AIPlayer("Gracz 1", "#ff0000", "#800000");
-		players ~= new AIPlayer("Gracz 2", "#0000ff", "#000080");
+		players ~= new AIPlayer("Gracz 1", "#00f000", "#008000");
+		players ~= new AIPlayer("Gracz 2", "#ff0000", "#800000");
 		
 		int offset = 1;
 		
@@ -393,6 +397,118 @@ class Main : UICallback
 		time.fracSec = FracSec.zero();
 		string filename = time.toSimpleString();
 		std.file.write("log/" ~ filename ~ ".html", toSave);
+	}
+	
+	/**
+	 * Powiększa.
+	 */
+	extern(C++) void zoomIn()
+	{
+		ui.zoomIn();
+	}
+	
+	/**
+	 * Pomniejsza.
+	 */
+	extern(C++) void zoomOut()
+	{
+		ui.zoomOut();
+	}
+	
+	/**
+	 * Otwiera ustawienia.
+	 */
+	extern(C++) void loadSettings()
+	{
+		// Rozmiar planszy
+		string params = format("%d;%d;", boardWidth, boardHeight);
+		
+		// Liczby jednostek
+		params ~= format("%d;%d;%d;%d;%d;%d;%d;%d;", eSwordCount, eBowCount, eShieldCount,
+						eHeroCount, oSwordCount, oBowCount, oShieldCount, oHeroCount);
+		
+		// Rozkład terenów
+		foreach(Terrain t; sectorTerrains)
+		{
+			params ~= format("%s;", t is null ? "grass" : t.name);
+		}
+		
+		// Losowanie poszczególnych terenów
+		int grass = 0, forest = 0, swamp = 0, hill = 0, ruins = 0;
+		
+		foreach(name; terrainNames)
+		{
+			if(name == "grass")
+				grass = 1;
+				
+			if(name == "forest")
+				forest = 1;
+				
+			if(name == "swamp")
+				swamp = 1;
+				
+			if(name == "hill")
+				hill = 1;
+				
+			if(name == "ruins")
+				ruins = 1;
+		}
+		
+		params ~= format("%d;%d;%d;%d;%d", grass, forest, swamp, hill, ruins);
+		
+		ui.openSettings(params);
+	}
+	
+	/**
+	 * Zapisuje ustawienia
+	 */
+	extern(C++) void saveSettings(immutable(char)* c_params)
+	{
+		string[] params = to!(string)(c_params).split(";");
+		
+		int i=0;
+		
+		// Rozmiar planszy
+		boardWidth = to!(int)(params[i++]);
+		boardHeight = to!(int)(params[i++]);
+		
+		// Ilość jednostek
+		eSwordCount = to!(int)(params[i++]);
+		eBowCount = to!(int)(params[i++]);
+		eShieldCount = to!(int)(params[i++]);
+		eHeroCount = to!(int)(params[i++]);
+		oSwordCount = to!(int)(params[i++]);
+		oBowCount = to!(int)(params[i++]);
+		oShieldCount = to!(int)(params[i++]);
+		oHeroCount = to!(int)(params[i++]);
+		
+		// Tereny
+		for(int j = 0; j < 9; j++)
+		{
+			sectorTerrains[j] = new Terrain(params[i], "img/terrains/" ~ params[i++] ~ ".png");
+		}
+		
+		// Zaznaczone pola losowania
+		terrainNames.length = 0;
+		
+		if(params[i++] == "1")
+			terrainNames ~= "grass";
+		
+		if(params[i++] == "1")
+			terrainNames ~= "forest";
+		
+		if(params[i++] == "1")
+			terrainNames ~= "swamp";
+		
+		if(params[i++] == "1")
+			terrainNames ~= "hill";
+		
+		if(params[i++] == "1")
+			terrainNames ~= "ruins";
+		
+		// Reset symulacji i zamknięcie karty ustawień
+		initSimulation(true);
+		ui.closeSettings();
 	}
 }
 

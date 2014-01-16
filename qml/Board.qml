@@ -3,7 +3,7 @@ import Ubuntu.Components 0.1
 
 Grid  // Tutaj przechowujemy planszę
 {
-	spacing: units.gu(0.5);
+	spacing: units.gu(0.2);
 	
 	function clear()
 	{

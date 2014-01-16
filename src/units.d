@@ -272,36 +272,6 @@ class Unit
 	}
 	
 	/**
-	 * Sprawdzenie, czy jednostka żyje.
-	 * Returns:
-	 * true, jeżeli żyje
-	 */
-	public bool isAlive()
-	{
-		return params["wounds"] > 0;
-	}
-	
-	/**
-	 * Sprawdzenie, czy jednostka może strzelać
-	 * Returns:
-	 * true, jeżeli jenostka może strzelać
-	 */
-	public bool isShooter()
-	{
-		return params.get("bow_strength", -1) != -1;
-	}
-	
-	/**
-	 * Sprawdzenie, czy jednostka jest bohaterem
-	 * Returns:
-	 * true, jeżeli jenostka jest bohaterem
-	 */
-	public bool isHero()
-	{
-		return v_isHero;
-	}
-	
-	/**
 	 * Metoda obsługująca ucieczkę jednostki.
 	 * Params:
 	 * board = Plansza
@@ -346,6 +316,53 @@ class Unit
 		return !isAlive();
 	}
 	
+	/**
+	 * Sprawdzenie, czy jednostka żyje.
+	 * Returns:
+	 * true, jeżeli żyje
+	 */
+	public bool isAlive()
+	{
+		return params["wounds"] > 0;
+	}
+	
+	/**
+	 * Sprawdzenie, czy jednostka może strzelać
+	 * Returns:
+	 * true, jeżeli jenostka może strzelać
+	 */
+	public bool isShooter()
+	{
+		return params.get("bow_strength", -1) != -1;
+	}
+	
+	/**
+	 * Sprawdzenie, czy jednostka jest bohaterem
+	 * Returns:
+	 * true, jeżeli jenostka jest bohaterem
+	 */
+	public bool isHero()
+	{
+		return v_isHero;
+	}
+	
+	/**
+	 * Sprawdza, czy jednostka ma daną zdolność
+	 * Params:
+	 * name = Nazwa zdolności
+	 * Returs:
+	 * true, jeżeli jednostka ją posiada
+	 */
+	public bool hasAbility(string name)
+	{
+		foreach(string ability; abilities)
+		{
+			if(ability == name)
+				return true;
+		}
+		
+		return false;
+	}
 	
 	// Funkcje własności
 	

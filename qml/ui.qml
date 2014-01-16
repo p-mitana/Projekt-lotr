@@ -2,6 +2,8 @@ import QtQuick 2.0
 import QtWebKit 3.0
 import Ubuntu.Components 0.1
 import Ubuntu.Components.Popups 0.1
+import Ubuntu.Components.ListItems 0.1
+
 
 MainView
 {
@@ -20,6 +22,10 @@ MainView
 	signal step();
 	signal reset();
 	signal saveLog();
+	signal zoomOut();
+	signal zoomIn();
+	signal loadSettings();
+	signal saveSettings(string params);
 		
 	PageStack
 	{
@@ -35,7 +41,7 @@ MainView
 				title: "Plansza";
 				page: Page
 				{
-					id: simultion;
+					id: simulation;
 					
 					Flickable
 					{
@@ -58,29 +64,21 @@ MainView
 						
 					}
 					
+					Image
+					{
+						id: legendImage;
+						anchors.bottom: parent.bottom;
+						anchors.right: parent.right;
+						
+						source: "../img/legend.png";
+						visible: false;
+					}
+					
 					tools: ToolbarItems
 					{
 						id: toolbar;
 						opened: true;
 						locked: true;
-						
-						Rectangle
-						{
-							anchors.verticalCenter: parent.verticalCenter;
-							width: units.gu(20);
-							height: units.gu(4);
-							color: "transparent";
-							
-							Label
-							{
-								id: turnCount;
-								anchors.verticalCenter: parent.verticalCenter;
-								anchors.horizontalCenter: parent.horizontalCenter;
-								color: "gray";
-								fontSize: "large";
-								text: "Czas: 0";
-							}
-						}
 						
 						ToolbarButton
 						{
@@ -134,19 +132,57 @@ MainView
 							}
 						}
 						
-						/*
+						Rectangle
+						{
+							anchors.verticalCenter: parent.verticalCenter;
+							width: units.gu(20);
+							height: units.gu(4);
+							color: "transparent";
+							
+							Label
+							{
+								id: turnCount;
+								anchors.verticalCenter: parent.verticalCenter;
+								anchors.horizontalCenter: parent.horizontalCenter;
+								color: "gray";
+								fontSize: "large";
+								text: "Czas: 0";
+							}
+						}
+						
 						ToolbarButton
 						{
 							text: "Pomniejsz";
 							iconSource: "../img/icons/zoomOut.svg";
+							
+							onTriggered:
+							{
+								root.zoomOut();
+							}
 						}
 						
 						ToolbarButton
 						{
 							text: "Powiększ";
 							iconSource: "../img/icons/zoomIn.svg";
+							
+							onTriggered:
+							{
+								root.zoomIn();
+							}
 						}
-						*/
+						
+						ToolbarButton
+						{
+							id: legend;
+							text: "Legenda";
+							iconSource: "../img/icons/legend.svg";
+							
+							onTriggered:
+							{
+								legendImage.visible = !legendImage.visible;
+							}
+						}
 						
 						ToolbarButton
 						{
@@ -155,9 +191,7 @@ MainView
 							
 							onTriggered:
 							{
-								pagestack.push(settings);
-								settings.tools.opened = true;
-								settings.tools.locked = true;
+								root.loadSettings();
 							}
 						}
 					}
@@ -236,5 +270,24 @@ MainView
 	function log(html)
 	{
 		webview.loadHtml('<html><head><style type="text/css">* {font-family: Ubuntu Mono;}</style><head><body>' + html + '</body></html>');
+	}
+	
+	function openSettings(params)
+	{
+		pagestack.push(settings);
+		pagestack.pop();
+		pagestack.push(settings);
+		
+		settings.tools.opened = true;
+		settings.tools.locked = true;
+		
+		// Wczytanie parametrów
+		settings.load(params);
+	}
+	
+	function closeSettings()
+	{
+		settings.closeDialog();
+		pagestack.pop();
 	}
 }

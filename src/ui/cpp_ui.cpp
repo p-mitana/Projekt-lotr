@@ -25,6 +25,10 @@ UI::UI(UICallback *callback)
 	connect(rootObject(), SIGNAL(step()), this, SLOT(simulationStep()));
 	connect(rootObject(), SIGNAL(reset()), this, SLOT(simulationReset()));
 	connect(rootObject(), SIGNAL(saveLog()), this, SLOT(saveLog()));
+	connect(rootObject(), SIGNAL(zoomIn()), this, SLOT(zoomIn()));
+	connect(rootObject(), SIGNAL(zoomOut()), this, SLOT(zoomOut()));
+	connect(rootObject(), SIGNAL(loadSettings()), this, SLOT(loadSettings()));
+	connect(rootObject(), SIGNAL(saveSettings(QString)), this, SLOT(saveSettings(QString)));
 	
 	show();
 }
@@ -67,6 +71,38 @@ void UI::simulationReset()
 void UI::saveLog()
 {
 	callback->saveLog();
+}
+
+/**
+ * Powiększanie
+ */
+void UI::zoomIn()
+{
+	callback->zoomIn();
+}
+
+/**
+ * Pomniejszenie
+ */
+void UI::zoomOut()
+{
+	callback->zoomOut();
+}
+
+/**
+ * Wczytuje ustawienia
+ */
+void UI::loadSettings()
+{
+	callback->loadSettings();
+}
+
+/**
+ * Zapisuje ustawienia
+ */
+void UI::saveSettings(QString params)
+{
+	callback->saveSettings(params.toUtf8().data());
 }
 
 /**
@@ -148,6 +184,46 @@ void UILink::showBattleOverDialog(char* winner)
 void UILink::log(char* html)
 {
 	QMetaObject::invokeMethod(ui->rootObject(), "log", Q_ARG(QVariant, html));
+}
+
+/**
+ * Powiększenie
+ */
+void UILink::zoomIn(int y, int x)
+{
+	stringstream stream;
+	stream << "field_" << y << "_" << x;
+	
+	QObject *field = board->findChild<QObject*>(stream.str().c_str());
+	QMetaObject::invokeMethod(field, "zoomIn");
+}
+
+/**
+ * Pomniejszenie
+ */
+void UILink::zoomOut(int y, int x)
+{
+	stringstream stream;
+	stream << "field_" << y << "_" << x;
+	
+	QObject *field = board->findChild<QObject*>(stream.str().c_str());
+	QMetaObject::invokeMethod(field, "zoomOut");
+}
+
+/**
+ * Otwiera ustawienia
+ */
+void UILink::openSettings(char *params)
+{
+	QMetaObject::invokeMethod(ui->rootObject(), "openSettings", Q_ARG(QVariant, params));
+}
+
+/**
+ * Zamyka ustawienia
+ */
+void UILink::closeSettings()
+{
+	QMetaObject::invokeMethod(ui->rootObject(), "closeSettings");
 }
 
 /**

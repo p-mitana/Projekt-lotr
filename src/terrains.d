@@ -70,6 +70,11 @@ class Terrain
 		
 		foreach(TerrainModifier modifier; modifiers)
 		{
+			// Elfy negują karę ruchu w lesie.
+			if(modifier.param == "movement" && name == "forest" && unit.hasAbility("woodlandCreature"))
+				return paramVal;
+			
+			// Modtgikacja
 			if(modifier.param == paramName && modifier.when == "")
 			{
 				string mod = modifier.modification[0..$];  // Skopiuj tablicę

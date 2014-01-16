@@ -19,8 +19,8 @@
 
 QT_BEGIN_MOC_NAMESPACE
 struct qt_meta_stringdata_UI_t {
-    QByteArrayData data[7];
-    char stringdata[75];
+    QByteArrayData data[12];
+    char stringdata[123];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -35,10 +35,17 @@ QT_MOC_LITERAL(2, 19, 0),
 QT_MOC_LITERAL(3, 20, 14),
 QT_MOC_LITERAL(4, 35, 14),
 QT_MOC_LITERAL(5, 50, 15),
-QT_MOC_LITERAL(6, 66, 7)
+QT_MOC_LITERAL(6, 66, 7),
+QT_MOC_LITERAL(7, 74, 6),
+QT_MOC_LITERAL(8, 81, 7),
+QT_MOC_LITERAL(9, 89, 12),
+QT_MOC_LITERAL(10, 102, 12),
+QT_MOC_LITERAL(11, 115, 6)
     },
     "UI\0simulationStart\0\0simulationStop\0"
     "simulationStep\0simulationReset\0saveLog\0"
+    "zoomIn\0zoomOut\0loadSettings\0saveSettings\0"
+    "params\0"
 };
 #undef QT_MOC_LITERAL
 
@@ -48,7 +55,7 @@ static const uint qt_meta_data_UI[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-       5,   14, // methods
+       9,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -56,11 +63,15 @@ static const uint qt_meta_data_UI[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   39,    2, 0x0a,
-       3,    0,   40,    2, 0x0a,
-       4,    0,   41,    2, 0x0a,
-       5,    0,   42,    2, 0x0a,
-       6,    0,   43,    2, 0x0a,
+       1,    0,   59,    2, 0x0a,
+       3,    0,   60,    2, 0x0a,
+       4,    0,   61,    2, 0x0a,
+       5,    0,   62,    2, 0x0a,
+       6,    0,   63,    2, 0x0a,
+       7,    0,   64,    2, 0x0a,
+       8,    0,   65,    2, 0x0a,
+       9,    0,   66,    2, 0x0a,
+      10,    1,   67,    2, 0x0a,
 
  // slots: parameters
     QMetaType::Void,
@@ -68,6 +79,10 @@ static const uint qt_meta_data_UI[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void, QMetaType::QString,   11,
 
        0        // eod
 };
@@ -82,10 +97,13 @@ void UI::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_
         case 2: _t->simulationStep(); break;
         case 3: _t->simulationReset(); break;
         case 4: _t->saveLog(); break;
+        case 5: _t->zoomIn(); break;
+        case 6: _t->zoomOut(); break;
+        case 7: _t->loadSettings(); break;
+        case 8: _t->saveSettings((*reinterpret_cast< QString(*)>(_a[1]))); break;
         default: ;
         }
     }
-    Q_UNUSED(_a);
 }
 
 const QMetaObject UI::staticMetaObject = {
@@ -113,13 +131,13 @@ int UI::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 5)
+        if (_id < 9)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        _id -= 9;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 5)
+        if (_id < 9)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 5;
+        _id -= 9;
     }
     return _id;
 }

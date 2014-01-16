@@ -97,6 +97,7 @@ class AIPlayer : Player
 							
 							// Sprawdzamy, czy są koledzy na polach przylegających do badenego
 							bool hasFriends = false;
+							bool hasShootingFriends = false;
 							
 							for(int k = i-1; k <= i+1; k++)
 							{
@@ -110,6 +111,9 @@ class AIPlayer : Player
 										
 									if(board[k][l].unit.owner == this)
 										hasFriends = true;
+									
+									if(board[k][l].unit.owner == this && board[k][l].unit.isShooter())
+										hasShootingFriends = true;
 								}
 							}
 							
@@ -119,13 +123,13 @@ class AIPlayer : Player
 							if(unit.isShooter())
 							{
 								mark = lowestEnemyDistance < (board[i][j].terrain.getParamValue(unit, "range")) ?
-										100 - lowestEnemyDistance : -3*lowestEnemyDistance;
+										50 + lowestEnemyDistance : -3*lowestEnemyDistance;
 								
-								mark += 10*distanceDodgeBonus + 20*rangeBonus + (hasFriends ? 0 : -10);
+								mark += 15*distanceDodgeBonus + 20*rangeBonus + (hasFriends ? 0 : -10) + (hasShootingFriends ? 20 : 0);
 							}
 							else
 							{
-								mark = -3*lowestEnemyDistance + 10*distanceDodgeBonus + (hasFriends ? 0 : -10);
+								mark = -3*lowestEnemyDistance + 15*distanceDodgeBonus + (hasFriends ? 0 : -10);
 							}
 							
 							if(mark > bestMark)

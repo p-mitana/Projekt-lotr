@@ -1,8 +1,6 @@
-Projekt na Symulacje i Sterowanie Procesów Dyskretnych:
+Projekt do działania wymaga Ubuntu 13.10 lub nowszego z zainstalowanym Qt 5.0 oraz Ubuntu SDK.
 
-Autorzy:
-Konrad Komnata
-Piotr Mitana
+Aby uruchomić program, należy w terminalu przejść do katalogu,
+w którym znajduje się ten plik, po czym wydać polecenie:
 
-Temat:
-Symulacja gry bitewnej
+bin/main

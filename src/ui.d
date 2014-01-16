@@ -93,6 +93,50 @@ class UIController
 		link.log(toStringz(logHtml));
 	}
 	
+	/**
+	 * Powiększa.
+	 */
+	public void zoomIn()
+	{
+		foreach(int i, Field[] row; board.fields)
+		{
+			foreach(int j, Field field; row)
+			{
+				link.zoomIn(i, j);
+			}
+		}
+	}
+	
+	/**
+	 * Pomniejsza.
+	 */
+	public void zoomOut()
+	{
+		foreach(int i, Field[] row; board.fields)
+		{
+			foreach(int j, Field field; row)
+			{
+				link.zoomOut(i, j);
+			}
+		}
+	}
+	
+	/**
+	 * Otwiera ustawienia
+	 */
+	public void openSettings(string params)
+	{
+		link.openSettings(toStringz(params));
+	}
+	
+	/**
+	 * Zamyka ustawienia
+	 */
+	public void closeSettings()
+	{
+		link.closeSettings();
+	}
+	
 	// Funkcje własności
 	
 	/// Ustawia planszę. Powoduje usunięcie planszy i utworzenie jej na nowo.
@@ -132,6 +176,10 @@ extern(C++) interface UICallback
 	void simulationStep();
 	void simulationReset();
 	void saveLog();
+	void zoomIn();
+	void zoomOut();
+	void loadSettings();
+	void saveSettings(immutable(char)* params);
 }
 
 /**
@@ -148,6 +196,10 @@ extern(C++) interface UILink
 	void updateTurnCount(int turnCount);  /// Aktualizuje licznik tur
 	void showBattleOverDialog(immutable(char)* winner);  /// Pokazuje dialog końca bitwy
 	void log(immutable(char)* html);  /// Przesyła informacje do loga
+	void zoomIn(int y, int x);  /// Powiększ
+	void zoomOut(int y, int x);  /// Pomniejsz
+	void openSettings(immutable(char)* params);  /// Otwórz ustawienia
+	void closeSettings();  /// Zamknij ustawienia
 }
 
 /**
