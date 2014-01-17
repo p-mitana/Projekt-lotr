@@ -109,7 +109,7 @@ class Main : UICallback
 			{
 				for(int i = 0; i < 9; i++)
 				{
-					ulong rand = uniform!("[]")(0, 2*terrains.length-2);
+					int rand = cast(int) uniform!("[]")(0, 2*terrains.length-2);
 					
 					if(rand < terrains.length)
 					{
